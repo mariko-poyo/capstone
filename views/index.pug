@@ -1,5 +1,20 @@
 extends layout
 
 block content
-  h1= title
-  p Welcome to #{title}
+    h1= title
+    p Welcome to #{title}
+    script(src='/static/moment.min.js')
+    script(src='/static/Chart.js')
+    script(src='/static/utils.js')
+    // script(src='/socket.io/socket.io.js')
+
+    block chart
+        div(class="chart-container")
+            canvas(id="canvas", class="chartjs-render-monitor")
+            br
+            br
+
+        button#randomizeData Randomize Data
+        button#addData Add Data
+        button#removeData Remove Data
+        script(src='/static/Draw.js')
