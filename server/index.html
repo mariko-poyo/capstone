@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+  	<head>
+      	<title>temperature sample</title>
+	</head>
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>	
+	<script>
+		var socket = io();
+
+		$(function (){
+	    	socket.on('temp val update', function(data) {
+			   var statusstring = 'online';
+			   var temp = '#temperatureval' + data.board_num.toString();
+			   var board = '#boardstatus' + data.board_num.toString();
+			   $(temp).text(data.temperatureval);
+			   $(board).text(statusstring);
+			});
+		});
+		
+		//add new temperature monitor on new connection
+		/*var board_counter = 1;
+		socket.on('new', function(){
+			var stringadd = '';
+			$().append()
+		});*/
+
+		//function to add monitoring board
+		var board_counter = 1;
+		function addBoardFunc(){
+			board_counter = board_counter + 1;
+			var string_to_add = '<tr>\n<td>'+ board_counter+'</td>\n<td><span id="boardstatus'+ board_counter+'">offline</span></td>\n<td><span id="temperatureval'+board_counter+'">no data yet</span></td>';
+			$('#monitoringtable').append(string_to_add);
+
+			//send add board request to server back-end
+			socket.emit('add board', board_counter);  //change board_counter to ip address later
+		}
+	</script>
+	<body>
+		<!--<ul id="messages"></ul>-->
+		<!--Temperature Value 1: <span id="temperatureval">no data yet</span>-->
+		<!--<form action="">
+			<input id="m" autocomplete="off" /><button>Send</button>
+		</form>-->
+		<button type="button" onclick=addBoardFunc()>Add Board</button>
+		<table id="monitoringtable">
+		<tr>
+			<th>board#</th>
+			<th>status</th>
+			<th>temperature</th>
+		</tr>
+		<tr>
+			<td>1</td> 
+			<td><span id="boardstatus1">offline</span></td>
+			<td><span id="temperatureval1">no data yet</span></td>
+		</tr>
+		</table>
+	</body>
+</html>
