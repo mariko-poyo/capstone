@@ -11,16 +11,17 @@ app.get('/', function(req, res){
 io.on('connection', function(socket){
 	console.log('new connection established');
 
-	socket.on('add board', function(ip){
-		console.log('add board with ip address of '+ ip);
+	socket.on('add board', function(config){
+		var board_num = config.num;
+		console.log('add board with ip address of '+ config.IP);
 
 		//spawn child for querying to ip address continuously
 		const process = fork('./inter_client.js');
-		process.send(ip);
+		process.send(config);
 
 		//process data on reply from child proc
 		process.on('message', (data) => {
-			io.emit('temp val update', {board_num: ip, temperatureval: data});
+			io.emit('temp val update', {board_num: board_num, temperatureval: data});
 		});
 	});
 });

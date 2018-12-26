@@ -7,6 +7,10 @@
 	<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>	
 	<script>
 		var socket = io();
+		var config_file = './board_config.csv'; //cannot read file without selecting it....????
+		//var IPs = [];
+		//var Ports =[];
+		var board_config = {};
 
 		$(function (){
 	    	socket.on('temp val update', function(data) {
@@ -18,41 +22,71 @@
 			});
 		});
 		
-		//add new temperature monitor on new connection
-		/*var board_counter = 1;
-		socket.on('new', function(){
-			var stringadd = '';
-			$().append()
-		});*/
+		//setup the directory obj
+		function pageOpened(){
+			//tmp
+			board_config["Board_1"] = {"IP":'127.0.0.1', "port":5000};
+			board_config["Board_2"] = {"IP":'149.248.186.212', "port":2935};
+			board_config["Board_3"] = {"IP":'149.248.186.212', "port":2936};
+
+			//set the config to the selection
+			for(var key in board_config){
+				var op_to_add = '<br><option value="'+key+'">'+key+'</option>';
+				$('#selectBoard').append(op_to_add);
+			}	
+		}
+
+		//load board_config.csv, if the file becomes bigger later -> async ?
+		/*var reader = new FileReader();
+		function pageOpened(){	
+			reader.readAsText(config_file);
+			reader.addEventListener('loadend', processData);
+		}
+
+		function processData(){
+			var allLines = reader.result.split('\\/r/n'|'\\n');
+			console.log(allLines);
+
+			var headers = allLines[0].split(',');
+
+			for(var i = 0; i < allLines.length; i++){
+				var data = allTextLines[i].split(',');
+				if(data.length == headers.length){
+					console.log(data);
+				}
+			}
+		}*/
 
 		//function to add monitoring board
-		var board_counter = 1;
+		//var board_counter = 1;
 		function addBoardFunc(){
-			board_counter = board_counter + 1;
-			var string_to_add = '<tr>\n<td>'+ board_counter+'</td>\n<td><span id="boardstatus'+ board_counter+'">offline</span></td>\n<td><span id="temperatureval'+board_counter+'">no data yet</span></td>';
+			
+			var board_name = document.getElementById('selectBoard').value;
+			console.log(board_name);
+
+			//board_counter = board_counter + 1;
+			var string_to_add = '<tr>\n<td>'+ board_name+'</td>\n<td><span id="boardstatus'+ board_name+'">offline</span></td>\n<td><span id="temperatureval'+board_name+'">no data yet</span></td>';
 			$('#monitoringtable').append(string_to_add);
 
 			//send add board request to server back-end
-			socket.emit('add board', board_counter);  //change board_counter to ip address later
+			board_config[board_name]["num"] = board_name;
+			socket.emit('add board', board_config[board_name]);  //change board_counter to ip address later
 		}
 	</script>
-	<body>
-		<!--<ul id="messages"></ul>-->
-		<!--Temperature Value 1: <span id="temperatureval">no data yet</span>-->
-		<!--<form action="">
-			<input id="m" autocomplete="off" /><button>Send</button>
-		</form>-->
+	<body onload=pageOpened()>
+		<select id="selectBoard">	
+		</select>
 		<button type="button" onclick=addBoardFunc()>Add Board</button>
 		<table id="monitoringtable">
 		<tr>
-			<th>board#</th>
-			<th>status</th>
-			<th>temperature</th>
+			<th>board# </th>
+			<th>status </th>
+			<th>temperature </th>
 		</tr>
 		<tr>
-			<td>1</td> 
-			<td><span id="boardstatus1">offline</span></td>
-			<td><span id="temperatureval1">no data yet</span></td>
+			<td>default</td> 
+			<td><span id="boardstatus1">offline </span></td>
+			<td><span id="temperatureval1">no data yet </span></td>
 		</tr>
 		</table>
 	</body>
