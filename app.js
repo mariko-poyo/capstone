@@ -1,21 +1,18 @@
 const createError = require('http-errors');
-const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
-
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 
+const express = require('express');
 const app = express();
-
 const http = require('http');
+const server = http.Server(app);
 
-const server = http.createServer(app);
+//creates a new socket.io instance attached to the http server.
+const io = require('socket.io')(server);
 
-// //creates a new socket.io instance attached to the http server.
-// const io = require('socket.io')(server);
-//
 // const getApiAndEmit = "TODO" // Fill later
 
 // view engine setup
@@ -63,5 +60,39 @@ app.use(function(err, req, res, next) {
 //         console.log("Client disconnected");
 //     });
 // });
+
+let interval;
+
+//new connection
+io.on('connection', function(socket){
+  console.log("New client connected");
+
+  if (interval){
+    clearInterval(interval);
+  }
+
+  socket.on('add board', function(config){
+    var board_num = config.num;
+    console.log('add board with ip address of '+ config.IP);
+
+    //spawn child for querying to ip address continuously
+    const process = fork('./inter_client.js');
+    process.send(config);
+
+    //process data on reply from child proc
+    process.on('message', (data) => {
+      io.emit('temp val update', {board_num: board_num, temperatureval: data});
+    });
+
+    socket.on("disconnect", () => console.log("Client disconnected"));
+  });
+});
+
+//send random value all the time
+setInterval(function() {
+  var temperature_tmp = Math.floor(Math.random() * 1000);
+  io.emit('temp val update', {board_num: 1, temperatureval: temperature_tmp});
+}, 1000);
+
 
 module.exports = app;

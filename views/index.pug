@@ -3,10 +3,12 @@ extends layout
 block content
     h1= title
     p Welcome to #{title}
-    script(src='/static/moment.min.js')
-    script(src='/static/Chart.js')
-    script(src='/static/utils.js')
-    // script(src='/socket.io/socket.io.js')
+    script(src='/static/src/moment.min.js')
+    script(src='/static/src/Chart.js')
+    script(src='/static/src/utils.js')
+    script(src='/static/src/socket.io.js')
+    script(src='/socket.io/socket.io.js')
+    script(src='https://code.jquery.com/jquery-3.2.1.min.js')
 
     block chart
         div(class="chart-container")
@@ -17,4 +19,34 @@ block content
         button#randomizeData Randomize Data
         button#addData Add Data
         button#removeData Remove Data
+        br
+        button#startInterval Start Generating Random Interval
+        button#endInterval End Generating Random Interval
+        p Note: Moment.js is based on current system time, and now the graph unit is second. So range may vary greatly if you add/generate data after a period of time
+        input#MaxItem(type="int" value=10)
+        button#submitMaxItem Max points showed on chart
+        br
+        input#Interval(type="int" value=1000)
+        button#submitInterval Set Interval (ms)
+        br
+        input#WarningCap(type="int" value=90)
+        button#submitWarningCap Set Warning Cap
+        br
         script(src='/static/Draw.js')
+        br
+
+    block boardList
+        script(src='/static/socket.js')
+        select#selectBoard
+        button(type="button",onclick='addBoardFunc()') Add Board
+        table#monitoringtable
+            tr
+                th board#
+                th status
+                th temperature
+            tr
+                td default
+                td
+                    span#boardstatus1
+                td
+                    span#temperatureval1

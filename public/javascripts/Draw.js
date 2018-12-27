@@ -6,6 +6,19 @@ function newDateString(days) {
     return moment().add(days, 'd').format();
 }
 
+function newSecond(seconds) {
+    return moment().add(seconds, 's').toTimeString();
+}
+
+function newTimeString(seconds) {
+    return moment().add(seconds, 's').format();
+}
+
+// Global
+var itemMax = 10;
+var warningCap = 90;
+var updateInterval = 1000;
+
 var color = Chart.helpers.color;
 var config = {
     type: 'line',
@@ -16,36 +29,18 @@ var config = {
             borderColor: window.chartColors.red,
             fill: false,
             data: [{
-                x: newDateString(0),
+                x: newTimeString(0),
                 y: randomScalingFactor()
             }, {
-                x: newDateString(2),
+                x: newTimeString(1),
                 y: randomScalingFactor()
             }, {
-                x: newDateString(4),
+                x: newTimeString(2),
                 y: randomScalingFactor()
             }, {
-                x: newDateString(5),
+                x: newTimeString(3),
                 y: randomScalingFactor()
             }],
-        }, {
-            label: 'Dataset 2',
-            backgroundColor: color(window.chartColors.blue).alpha(0.5).rgbString(),
-            borderColor: window.chartColors.blue,
-            fill: false,
-            data: [{
-                x: newDate(0),
-                y: randomScalingFactor()
-            }, {
-                x: newDate(2),
-                y: randomScalingFactor()
-            }, {
-                x: newDate(4),
-                y: randomScalingFactor()
-            }, {
-                x: newDate(5),
-                y: randomScalingFactor()
-            }]
         }]
     },
     options: {
@@ -60,7 +55,7 @@ var config = {
                 display: true,
                 scaleLabel: {
                     display: true,
-                    labelString: 'Date'
+                    labelString: 'Time'
                 },
                 ticks: {
                     major: {
@@ -73,7 +68,7 @@ var config = {
                 display: true,
                 scaleLabel: {
                     display: true,
-                    labelString: 'value'
+                    labelString: 'Temperature'
                 }
             }]
         }
@@ -82,7 +77,17 @@ var config = {
 
 window.onload = function() {
     var ctx = document.getElementById('canvas').getContext('2d');
-    window.myLine = new Chart(ctx, config);
+    window.Chart1 = new Chart(ctx, config);
+    //tmp
+    board_config["Board_1"] = {"IP":'127.0.0.1', "port":5000};
+    board_config["Board_2"] = {"IP":'149.248.186.212', "port":2935};
+    board_config["Board_3"] = {"IP":'149.248.186.212', "port":2936};
+
+    //set the config to the selection
+    for(var key in board_config){
+        var op_to_add = '<br><option value="'+key+'">'+key+'</option>';
+        $('#selectBoard').append(op_to_add);
+    }
 };
 
 document.getElementById('randomizeData').addEventListener('click', function() {
@@ -92,21 +97,14 @@ document.getElementById('randomizeData').addEventListener('click', function() {
         });
     });
 
-    window.myLine.update();
+    window.Chart1.update();
 });
 document.getElementById('addData').addEventListener('click', function() {
-    if (config.data.datasets.length > 0) {
-        config.data.datasets[0].data.push({
-            x: newDateString(config.data.datasets[0].data.length + 2),
-            y: randomScalingFactor()
-        });
-        config.data.datasets[1].data.push({
-            x: newDate(config.data.datasets[1].data.length + 2),
-            y: randomScalingFactor()
-        });
-
-        window.myLine.update();
-    }
+    config.data.datasets[0].data.push({
+        x: newTimeString(0),
+        y: randomScalingFactor()
+    });
+    window.Chart1.update();
 });
 
 document.getElementById('removeData').addEventListener('click', function() {
@@ -114,5 +112,40 @@ document.getElementById('removeData').addEventListener('click', function() {
         dataset.data.pop();
     });
 
-    window.myLine.update();
+    window.Chart1.update();
+});
+
+
+var interval;
+document.getElementById('startInterval').addEventListener('click', function() {
+    interval = setInterval(function() {
+        config.data.datasets[0].data.push({
+            x: newTimeString(0),
+            y: randomScalingFactor()
+        });
+        if(config.data.datasets[0].data.length > itemMax) {
+            config.data.datasets[0].data.splice(0, config.data.datasets[0].data.length - itemMax);
+        }
+        window.Chart1.update();
+        if(config.data.datasets[0].data[config.data.datasets[0].data.length - 1].y > warningCap)
+            alert("Warning: Latest Value Beyond "+warningCap.toString()+" !", );
+    }, updateInterval);
+});
+
+document.getElementById('endInterval').addEventListener('click', function() {
+    if (interval) {
+        clearInterval(interval);
+    }
+});
+
+document.getElementById('submitMaxItem').addEventListener('click', function() {
+    itemMax = document.getElementById("MaxItem").value;
+});
+
+document.getElementById('submitInterval').addEventListener('click', function() {
+    updateInterval = document.getElementById("Interval").value;
+});
+
+document.getElementById('submitWarningCap').addEventListener('click', function() {
+    warningCap = document.getElementById("WarningCap").value;
 });

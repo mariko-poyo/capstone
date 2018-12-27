@@ -4,19 +4,26 @@ Monitor application for tracing client board status under Galapagos.
 Updating...
 
 **Last Commit:**
-* After evaluating few chart plugins (Plotly, fusionCharts, etc.), currently focusing on Chart.js
-* Implemented a template chart.
+* Chart can be updated by start a random update interval in ``updateInterval`` ms. 
+* Due to unsolved file accessing bug, socket.io queries are currently all 404.
+* Values over ``warningCap``  will trigger an alert on page during interval.
+* Max points showed on chart is user defined by ``maxItem``.
 
 **TODO:**
-* Tag split for multiple charts
-* Use socket.io to perform realtime update?
-* Interaction Buttons
-* Chart list
-* Warning messages
+* Find a proper way for showing multiple charts at same time
+* Use socket.io to perform realtime update.
+* Interaction Buttons **(more!)**
+* Chart list **(Debugging)**
+* ~~Warning messages~~
 * Dashboard
 * ...
 
-**?**
-* Can socket.io act as a receiver?
+#### Opened Issues:
+* Node Module accesses 404 still exist. Need to solve ASAP.
 
-**Run npm -install for package.json first**
+
+**Setup**
+``` bash
+   npm install // Install all modules in package.json
+   npm start   // Run server
+```
