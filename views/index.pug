@@ -3,12 +3,11 @@ extends layout
 block content
     h1= title
     p Welcome to #{title}
-    script(src='/static/src/moment.min.js')
-    script(src='/static/src/Chart.js')
-    script(src='/static/src/utils.js')
-    script(src='/static/src/socket.io.js')
-    script(src='/socket.io/socket.io.js')
+    script(src='/static/utils.js')
+    script(src='https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js')
     script(src='https://code.jquery.com/jquery-3.2.1.min.js')
+    script(src='https://rawgit.com/moment/moment/2.2.1/min/moment.min.js')
+    script(src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.js')
 
     block chart
         div(class="chart-container")

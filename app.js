@@ -1,17 +1,23 @@
 const createError = require('http-errors');
 const path = require('path');
-const cookieParser = require('cookie-parser');
+//const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 
 const express = require('express');
 const app = express();
-const http = require('http');
-const server = http.Server(app);
+
+const APP_PORT= 5555; //tmp
+const server = app.listen(APP_PORT, ()=> {
+	console.log('app running in port ' + APP_PORT);
+});
+//const http = require('http');
+//const server = http.Server(app);
 
 //creates a new socket.io instance attached to the http server.
-const io = require('socket.io')(server);
+//const io = require('socket.io')(server);
+var io = require('socket.io').listen(app.listen(server));
 
 // const getApiAndEmit = "TODO" // Fill later
 
@@ -22,11 +28,11 @@ app.set('view engine', 'pug');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
+//app.use(cookieParser());
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/static', express.static(path.join(__dirname, 'public/javascripts')));
+app.use('/static',express.static(path.join(__dirname, 'public/javascripts')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
