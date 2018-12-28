@@ -11,7 +11,7 @@ Updating...
 
 **TODO:**
 * Find a proper way for showing multiple charts at same time
-* Use socket.io to perform realtime update.
+* ~~Use socket.io to perform realtime update.~~
 * Interaction Buttons **(more!)**
 * Chart list **(Debugging)**
 * ~~Warning messages~~
@@ -19,7 +19,7 @@ Updating...
 * ...
 
 #### Opened Issues:
-* Node Module accesses 404 still exist. Need to solve ASAP.
+* ~~Node Module accesses 404 still exist. Need to solve ASAP.~~
 
 
 **Setup**
