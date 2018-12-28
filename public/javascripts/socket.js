@@ -9,6 +9,13 @@ $(function (){
         var board = '#boardstatus' + data.board_num.toString();
         $(temp).text(data.temperatureval);
         $(board).text(statusstring);
+
+		config.data.datasets[0].data.push({
+        	x: newTimeString(0),
+        	y: data.temperatureval
+    	});
+
+		window.Chart1.update();
     });
 });
 

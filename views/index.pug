@@ -8,6 +8,8 @@ block content
     script(src='https://code.jquery.com/jquery-3.2.1.min.js')
     script(src='https://rawgit.com/moment/moment/2.2.1/min/moment.min.js')
     script(src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.js')
+    script(src='/static/Draw.js')
+    script(src='/static/socket.js')
 
     block chart
         div(class="chart-container")
@@ -31,11 +33,9 @@ block content
         input#WarningCap(type="int" value=90)
         button#submitWarningCap Set Warning Cap
         br
-        script(src='/static/Draw.js')
         br
 
     block boardList
-        script(src='/static/socket.js')
         select#selectBoard
         button(type="button",onclick='addBoardFunc()') Add Board
         table#monitoringtable
