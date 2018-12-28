@@ -4,10 +4,7 @@ Monitor application for tracing client board status under Galapagos.
 Updating...
 
 **Last Commit:**
-* Chart can be updated by start a random update interval in ``updateInterval`` ms. 
-* Due to unsolved file accessing bug, socket.io queries are currently all 404.
-* Values over ``warningCap``  will trigger an alert on page during interval.
-* Max points showed on chart is user defined by ``maxItem``.
+* Chart is updated with random number in real time.
 
 **TODO:**
 * Find a proper way for showing multiple charts at same time
@@ -16,10 +13,11 @@ Updating...
 * Chart list **(Debugging)**
 * ~~Warning messages~~
 * Dashboard
-* ...
+* Set default value of points of graph 
+* Show real temperature instead of random number
 
 #### Opened Issues:
-* ~~Node Module accesses 404 still exist. Need to solve ASAP.~~
+* Child processes in back-end cannot detect connection close on GUI and are kept survive. (should be killed)
 
 
 **Setup**
