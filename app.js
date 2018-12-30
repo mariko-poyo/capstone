@@ -9,7 +9,7 @@ const { fork } = require('child_process');
 const express = require('express');
 const app = express();
 
-const APP_PORT= 5555; //tmp
+const APP_PORT= 5556; //tmp -> change it to some other port if ELIFECYCLE error appears
 const server = app.listen(APP_PORT, ()=> {
 	console.log('app running in port ' + APP_PORT);
 });
@@ -76,6 +76,7 @@ io.on('connection', function(socket){
 
   socket.on('add board', function(config){
     var board_num = config.num;
+	var board_id = config.id;
     console.log('add board with ip address of '+ config.IP);
 
     //spawn child for querying to ip address continuously
@@ -84,7 +85,7 @@ io.on('connection', function(socket){
 
     //process data on reply from child proc
     process.on('message', (data) => {
-      io.emit('temp val update', {board_num: board_num, temperatureval: data});
+      io.emit('temp val update', {id: board_id,board_num: board_num, temperatureval: data});
     });
 
     socket.on("disconnect", () => console.log("Client disconnected"));
@@ -94,7 +95,7 @@ io.on('connection', function(socket){
 //send random value all the time
 setInterval(function() {
   var temperature_tmp = Math.floor(Math.random() * 1000);
-  io.emit('temp val update', {board_num: 1, temperatureval: temperature_tmp});
+  io.emit('temp val update', {id: 0, board_num: 0, temperatureval: temperature_tmp});
 }, 1000);
 
 

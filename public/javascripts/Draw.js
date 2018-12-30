@@ -20,6 +20,8 @@ var warningCap = 90;
 var updateInterval = 1000;
 
 var color = Chart.helpers.color;
+
+var configs = [];
 var config = {
     type: 'line',
     data: {
@@ -76,9 +78,12 @@ var config = {
 };
 
 window.onload = function() {
-    var ctx = document.getElementById('canvas').getContext('2d');
-    window.Chart1 = new Chart(ctx, config);
-    //tmp
+    configs.push(config);
+
+	var ctx = document.getElementById('canvas').getContext('2d');
+    window.Chart0 = new Chart(ctx, configs[0]);
+	
+	//tmp
     board_config["Board_1"] = {"IP":'127.0.0.1', "port":5000};
     board_config["Board_2"] = {"IP":'149.248.186.212', "port":2935};
     board_config["Board_3"] = {"IP":'149.248.186.212', "port":2936};
@@ -91,43 +96,44 @@ window.onload = function() {
 };
 
 document.getElementById('randomizeData').addEventListener('click', function() {
-    config.data.datasets.forEach(function(dataset) {
+    configs[0].data.datasets.forEach(function(dataset) {
         dataset.data.forEach(function(dataObj) {
             dataObj.y = randomScalingFactor();
         });
     });
 
-    window.Chart1.update();
+    window.Chart0.update();	
 });
+
 document.getElementById('addData').addEventListener('click', function() {
-    config.data.datasets[0].data.push({
+    configs[0].data.datasets[0].data.push({
         x: newTimeString(0),
         y: randomScalingFactor()
     });
-    window.Chart1.update();
+    window.Chart0.update();
 });
 
 document.getElementById('removeData').addEventListener('click', function() {
-    config.data.datasets.forEach(function(dataset) {
+    configs[0].data.datasets.forEach(function(dataset) {
         dataset.data.pop();
     });
 
-    window.Chart1.update();
+    window.Chart0.update();
 });
 
 
 var interval;
 document.getElementById('startInterval').addEventListener('click', function() {
     interval = setInterval(function() {
-        config.data.datasets[0].data.push({
+        configs[0].data.datasets[0].data.push({
             x: newTimeString(0),
             y: randomScalingFactor()
         });
-        if(config.data.datasets[0].data.length > itemMax) {
+        if(configs[0].data.datasets[0].data.length > itemMax) {
             config.data.datasets[0].data.splice(0, config.data.datasets[0].data.length - itemMax);
         }
-        window.Chart1.update();
-        if(config.data.datasets[0].data[config.data.datasets[0].data.length - 1].y > warningCap)
+        window.Chart0.update();	
+        if(configs[0].data.datasets[0].data[config.data.datasets[0].data.length - 1].y > warningCap)
             alert("Warning: Latest Value Beyond "+warningCap.toString()+" !", );
     }, updateInterval);
 });
@@ -149,3 +155,23 @@ document.getElementById('submitInterval').addEventListener('click', function() {
 document.getElementById('submitWarningCap').addEventListener('click', function() {
     warningCap = document.getElementById("WarningCap").value;
 });
+
+function openCanvas(evt, board){
+	var i, tabcontent, tablinks;
+	tabcontent = document.getElementsByClassName("tabcontent");
+	tablinks = document.getElementsByClassName("tablinks");
+
+	//hide currently shown one
+	for(i =0; i < tabcontent.length;i++){
+		tabcontent[i].style.display = "none";
+	}
+
+	for(i=0; i < tablinks.length; i++){
+		tablinks[i].className = tablinks[i].className.replace("active","");
+	}
+
+	//show the clicked element
+	document.getElementById(board).style.display = "block";
+	evt.currentTarget.className += "active";	
+}
+

@@ -12,10 +12,16 @@ block content
     script(src='/static/socket.js')
 
     block chart
-        div(class="chart-container")
-            canvas(id="canvas", class="chartjs-render-monitor")
-            br
-            br
+        div(id="board_tabs", class="tab")
+            button(class="tablinks", onclick='openCanvas(event,\'default\')') Default
+        div(id="tab_contents")
+            div(id="default", class="tabcontent")
+                h3 Default
+                p Displaying default randomly generated number
+                div(id="canvas_container", class="chart-container")
+                    canvas(id="canvas", class="chartjs-render-monitor")
+                    br
+                    br
 
         button#randomizeData Randomize Data
         button#addData Add Data
