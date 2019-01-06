@@ -4,8 +4,7 @@ Monitor application for tracing client board status under Galapagos.
 Updating...
 
 **Last Commit:**
-* Multiple charts are updated with random number in real time.
-* Allow user to switch graphs for multiple boards as a tag.
+* Fixed number of points that appear in each graph.
 
 **TODO:**
 * ~Find a proper way for showing multiple charts at same time~ (Done ??)
@@ -14,11 +13,11 @@ Updating...
 * Chart list **(Debugging)**
 * ~~Warning messages~~
 * Dashboard
-* Set default value of points of graph 
+* ~~Set default value of points of graph~~ 
 * Show real temperature instead of random number
 
 #### Opened Issues:
-* Child processes in back-end cannot detect connection close on GUI and are kept survive. (should be killed)
+* ~~Child processes in back-end cannot detect connection close on GUI and are kept survive. (should be killed)~~
 
 #### Note:
 * if ELIFECYCLE error appears on "npm start", it means someone else is using those ports. So modify APP_PORT in

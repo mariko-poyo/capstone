@@ -1,6 +1,7 @@
 var socket = io();
 var config_file = './board_config.csv'; //cannot read file without selecting it....????
 var board_config = {};
+var numGraphPoints = 10;
 
 $(function (){
     socket.on('temp val update', function(data) {
@@ -10,6 +11,13 @@ $(function (){
         $(temp).text(data.temperatureval);
         $(board).text(statusstring);
 
+		//pop out old data if # of datapoints is more than 9
+		if(configs[data.id].data.datasets[0].data.length >= numGraphPoints){
+			configs[data.id].data.datasets.forEach(function(dataset) {
+        		dataset.data.shift();
+    		});
+		}
+	
 		configs[data.id].data.datasets[0].data.push({
         	x: newTimeString(0),
         	y: data.temperatureval
@@ -60,15 +68,6 @@ function addBoardFunc(){
             	fill: false,
             	data: [{
                 	x: newTimeString(0),
-                	y: randomScalingFactor()
-            	}, {
-                	x: newTimeString(1),
-                	y: randomScalingFactor()
-            	}, {
-                	x: newTimeString(2),
-                	y: randomScalingFactor()
-            	}, {
-                	x: newTimeString(3),
                 	y: randomScalingFactor()
             	}],
         	}]
