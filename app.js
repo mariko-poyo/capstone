@@ -83,6 +83,7 @@ io.on('connection', function(socket){
 	// board_num looks like board_1
 	var board_id = parseInt(board_num.split("_")[1], 10);
     console.log('add board with id ' + board_id + ' and with ip address of '+ config.IP);
+	console.log('current count of board id: ' + childcounts[board_id]);
 	boards.push(board_id);
 	if(childcounts[board_id] == 0)
 	{
@@ -92,7 +93,7 @@ io.on('connection', function(socket){
 	}
 	childcounts[board_id]++;
     //process data on reply from child proc
-    childprocesses[config.id].on('message', (data) => {
+    childprocesses[board_id].on('message', (data) => {
       io.emit('temp val update', {id: board_id,board_num: board_num, temperatureval: data});
     });
 
@@ -117,6 +118,7 @@ io.on('connection', function(socket){
     console.log("Client disconnected");
     boards.forEach(function(value){
 	  childcounts[value]--;
+	  console.log("value at index " + value + " is now " + childcounts[value]);
 	  if(childcounts[value] == 0){
         console.log('killing child process listening on board id ' + value);
         childprocesses[value].kill();
