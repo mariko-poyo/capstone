@@ -66,29 +66,62 @@ app.use(function(err, req, res, next) {
 
 let interval;
 
+let childprocesses = [];
+// at beginning everything should be 0, now we only have 3 boards
+// and I am lazy so let's have 4 zeros
+let childcounts = [0,0,0,0];
 //new connection
 io.on('connection', function(socket){
   console.log("New client connected");
-
+  var boards = [];
   if (interval){
     clearInterval(interval);
   }
 
   socket.on('add board', function(config){
     var board_num = config.num;
-	var board_id = config.id;
-    console.log('add board with ip address of '+ config.IP);
-
-    //spawn child for querying to ip address continuously
-    const process = fork('./inter_client.js');
-    process.send(config);
-
+	// board_num looks like board_1
+	var board_id = parseInt(board_num.split("_")[1], 10);
+    console.log('add board with id ' + board_id + ' and with ip address of '+ config.IP);
+	boards.push(board_id);
+	if(childcounts[board_id] == 0)
+	{
+      //spawn child for querying to ip address continuously
+      childprocesses[board_id] = fork('./inter_client.js');
+      childprocesses[board_id].send(config);
+	}
+	childcounts[board_id]++;
     //process data on reply from child proc
-    process.on('message', (data) => {
+    childprocesses[config.id].on('message', (data) => {
       io.emit('temp val update', {id: board_id,board_num: board_num, temperatureval: data});
     });
 
-    socket.on("disconnect", () => console.log("Client disconnected"));
+	// Temprorarily there is an issue. when multiple socket own the same
+	// subprocess, although only one subprocess will close but all socket will
+	// print out the message, making the thing very confusing.
+	childprocesses[board_id].on('close', (code) => {
+		console.log("Sub process killed, board id is " + board_id);
+	});
+
+	// I have no idea whther this is the correct implemenation or not.
+	// simple leave it here as reminder that we need to implement it
+	//childprocesses[config.id].on('error', (error) => {
+	//	console.log(error);
+    //});
+
+
+  });
+
+  // This happens when broswer disconnet from server
+  socket.on("disconnect", () => {
+    console.log("Client disconnected");
+    boards.forEach(function(value){
+	  childcounts[value]--;
+	  if(childcounts[value] == 0){
+        console.log('killing child process listening on board id ' + value);
+        childprocesses[value].kill();
+	  }
+    });
   });
 });
 
