@@ -6,6 +6,8 @@ const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 const { fork } = require('child_process');
 
+const fs = require('fs');
+
 const express = require('express');
 const app = express();
 
@@ -16,6 +18,16 @@ const server = app.listen(APP_PORT, ()=> {
 
 var io = require('socket.io').listen(app.listen(server));
 
+// Some Bootup loading
+var Boarddata = JSON.parse(fs.readFileSync('board_data.json', 'utf8'));
+
+
+// Setup http handler
+app.get('/getBoards',function(req,res){
+  console.log("receive http request");
+  res.send(Boarddata);
+  res.end();
+});
 // const getApiAndEmit = "TODO" // Fill later
 
 // view engine setup

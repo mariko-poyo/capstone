@@ -79,20 +79,32 @@ var config = {
 
 window.onload = function() {
     configs.push(config);
-
 	var ctx = document.getElementById('canvas').getContext('2d');
     window.Chart0 = new Chart(ctx, configs[0]);
-	
-	//tmp
-    board_config["Board_1"] = {"IP":'127.0.0.1', "port":5000};
-    board_config["Board_2"] = {"IP":'149.248.186.212', "port":2935};
-    board_config["Board_3"] = {"IP":'149.248.186.212', "port":2936};
 
-    //set the config to the selection
-    for(var key in board_config){
-        var op_to_add = '<br><option value="'+key+'">'+key+'</option>';
-        $('#selectBoard').append(op_to_add);
-    }
+	const Http = new XMLHttpRequest();
+	const url='/getBoards';
+    Http.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            boards_data = JSON.parse(this.responseText);
+            var op_to_add = '';
+            for(var board_name in boards_data){
+                board_config[board_name] = {};
+                console.log(board_name);
+                for(var key in boards_data[board_name]){
+                    console.log("Key: " + key + ", Value: " + boards_data[board_name][key]);
+                    board_config[board_name][key] = boards_data[board_name][key];
+                }
+                //set the config to the selection
+                op_to_add += '<br><option value="'+board_name+'">'+board_name+'</option>';
+            } 
+            console.log(op_to_add);
+            $('#selectBoard').append(op_to_add);
+        }
+    };
+
+	Http.open("GET", url);
+	Http.send(); 
 };
 
 document.getElementById('randomizeData').addEventListener('click', function() {
