@@ -16,11 +16,27 @@ const server = app.listen(APP_PORT, ()=> {
 	console.log('app running in port ' + APP_PORT);
 });
 
+const nodemailer = require('nodemailer');
+
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: 'GalapagosMonitor@gmail.com',
+        pass: 'Galapagos496'
+    }
+});
+
+const mailOptions = {
+    from: 'GalapagosMonitor@address.com', // sender address
+    to: 'hk.xu@mail.utoronto.ca', // list of receivers
+    subject: 'This is a warning email!', // Subject line
+    html: '<p>Your board is burning!</p>'// plain text body
+};
+
 var io = require('socket.io').listen(app.listen(server));
 
 // Some Bootup loading
 var Boarddata = JSON.parse(fs.readFileSync('board_data.json', 'utf8'));
-
 
 // Setup http handler
 app.get('/getBoards',function(req,res){
@@ -28,7 +44,6 @@ app.get('/getBoards',function(req,res){
   res.send(Boarddata);
   res.end();
 });
-// const getApiAndEmit = "TODO" // Fill later
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -141,8 +156,18 @@ io.on('connection', function(socket){
 
 //send random value all the time
 setInterval(function() {
-  var temperature_tmp = Math.floor(Math.random() * 1000);
-  io.emit('temp val update', {id: 0, board_num: 0, temperatureval: temperature_tmp});
+    var temperature_tmp = Math.floor(Math.random() * 1000);
+    if (temperature_tmp >= 1000) {
+        transporter.sendMail(mailOptions, function (err, info) {
+            if(err)
+                console.log(err) ;
+            else
+                console.log(info);
+        });
+        console.log('Email sent. Temperature at the moment is' + temperature_tmp.toString());
+    }
+    io.emit('temp val update', {id: 0, board_num: 0, temperatureval: temperature_tmp});
+
 }, 1000);
 
 

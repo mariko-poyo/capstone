@@ -23,20 +23,20 @@ block content
                     br
                     br
 
-        button#randomizeData Randomize Data
-        button#addData Add Data
-        button#removeData Remove Data
-        br
-        button#startInterval Start Generating Random Interval
-        button#endInterval End Generating Random Interval
+        //button#addData Add Data
+        //button#removeData Remove Data
+        //br
+        //button#startInterval Start Generating Random Interval
+        //button#endInterval End Generating Random Interval
         p Note: Moment.js is based on current system time, and now the graph unit is second. So range may vary greatly if you add/generate data after a period of time
         input#MaxItem(type="int" value=10)
         button#submitMaxItem Max points showed on chart
         br
         input#Interval(type="int" value=1000)
         button#submitInterval Set Interval (ms)
+        p MIN Interval: 1000
         br
-        input#WarningCap(type="int" value=90)
+        input#WarningCap(type="int" value=950)
         button#submitWarningCap Set Warning Cap
         br
         br

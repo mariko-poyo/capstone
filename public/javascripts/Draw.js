@@ -15,9 +15,13 @@ function newTimeString(seconds) {
 }
 
 // Global
-var itemMax = 10;
-var warningCap = 90;
-var updateInterval = 1000;
+var Global = {
+    warningCap: 950,
+    updateInterval: 1000,
+    numGraphPoints: 10,
+    activeTab: NaN
+};
+
 
 var color = Chart.helpers.color;
 
@@ -27,8 +31,8 @@ var config = {
     data: {
         datasets: [{
             label: 'Dataset 1',
-            backgroundColor: color(window.chartColors.red).alpha(0.5).rgbString(),
-            borderColor: window.chartColors.red,
+            backgroundColor: color(window.chartColors.blue).alpha(0.5).rgbString(), //set color to random??
+            borderColor: window.chartColors.blue,
             fill: false,
             data: [{
                 x: newTimeString(0),
@@ -107,65 +111,34 @@ window.onload = function() {
 	Http.send(); 
 };
 
-document.getElementById('randomizeData').addEventListener('click', function() {
-    configs[0].data.datasets.forEach(function(dataset) {
-        dataset.data.forEach(function(dataObj) {
-            dataObj.y = randomScalingFactor();
-        });
-    });
+//
+// document.getElementById('addData').addEventListener('click', function() {
+//     configs[0].data.datasets[0].data.push({
+//         x: newTimeString(0),
+//         y: randomScalingFactor()
+//     });
+//     window.Chart0.update();
+// });
+//
+// document.getElementById('removeData').addEventListener('click', function() {
+//     configs[0].data.datasets.forEach(function(dataset) {
+//         dataset.data.pop();
+//     });
+//
+//     window.Chart0.update();
+// });
 
-    window.Chart0.update();	
-});
-
-document.getElementById('addData').addEventListener('click', function() {
-    configs[0].data.datasets[0].data.push({
-        x: newTimeString(0),
-        y: randomScalingFactor()
-    });
-    window.Chart0.update();
-});
-
-document.getElementById('removeData').addEventListener('click', function() {
-    configs[0].data.datasets.forEach(function(dataset) {
-        dataset.data.pop();
-    });
-
-    window.Chart0.update();
-});
-
-
-var interval;
-document.getElementById('startInterval').addEventListener('click', function() {
-    interval = setInterval(function() {
-        configs[0].data.datasets[0].data.push({
-            x: newTimeString(0),
-            y: randomScalingFactor()
-        });
-        if(configs[0].data.datasets[0].data.length > itemMax) {
-            config.data.datasets[0].data.splice(0, config.data.datasets[0].data.length - itemMax);
-        }
-        window.Chart0.update();	
-        if(configs[0].data.datasets[0].data[config.data.datasets[0].data.length - 1].y > warningCap)
-            alert("Warning: Latest Value Beyond "+warningCap.toString()+" !", );
-    }, updateInterval);
-});
-
-document.getElementById('endInterval').addEventListener('click', function() {
-    if (interval) {
-        clearInterval(interval);
-    }
-});
 
 document.getElementById('submitMaxItem').addEventListener('click', function() {
-    itemMax = document.getElementById("MaxItem").value;
+    Global.numGraphPoints = document.getElementById("MaxItem").value;
 });
 
 document.getElementById('submitInterval').addEventListener('click', function() {
-    updateInterval = document.getElementById("Interval").value;
+    Global.updateInterval = document.getElementById("Interval").value;
 });
 
 document.getElementById('submitWarningCap').addEventListener('click', function() {
-    warningCap = document.getElementById("WarningCap").value;
+    Global.warningCap = document.getElementById("WarningCap").value;
 });
 
 function openCanvas(evt, board){
@@ -184,6 +157,6 @@ function openCanvas(evt, board){
 
 	//show the clicked element
 	document.getElementById(board).style.display = "block";
-	evt.currentTarget.className += "active";	
+	evt.currentTarget.className += "active";
 }
 

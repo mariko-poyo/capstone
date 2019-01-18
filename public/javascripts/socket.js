@@ -1,7 +1,6 @@
 var socket = io();
 var config_file = './board_config.csv'; //cannot read file without selecting it....????
 var board_config = {};
-var numGraphPoints = 10;
 
 $(function (){
     socket.on('temp val update', function(data) {
@@ -12,11 +11,14 @@ $(function (){
         $(board).text(statusstring);
 
 		//pop out old data if # of datapoints is more than 9
-		if(configs[data.id].data.datasets[0].data.length >= numGraphPoints){
+		if(configs[data.id].data.datasets[0].data.length >= Global.numGraphPoints){
 			configs[data.id].data.datasets.forEach(function(dataset) {
         		dataset.data.shift();
     		});
 		}
+
+		if(configs[data.id].data.datasets[0].data[configs[data.id].data.datasets[0].data.length - 1].y > Global.warningCap)
+			alert("Warning: Latest Value Beyond "+ Global.warningCap.toString()+" at board "+ data.id.toString() + " !", );
 	
 		configs[data.id].data.datasets[0].data.push({
         	x: newTimeString(0),
@@ -103,7 +105,6 @@ function addBoardFunc(){
         	}	
     	}
 	};
-
 
 	//add line for new board
 	var string_to_add = '<tr>\n<td>'+ board_name+'</td>\n<td><span id="boardstatus'+ board_name+'">offline</span></td>\n<td><span id="temperatureval'+board_name+'">no data yet</span></td>';
