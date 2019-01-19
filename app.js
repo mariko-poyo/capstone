@@ -10,6 +10,7 @@ const fs = require('fs');
 
 const express = require('express');
 const app = express();
+const warningNotify = require('node-notifier');
 
 const APP_PORT= 5556; //tmp -> change it to some other port if ELIFECYCLE error appears
 const server = app.listen(APP_PORT, ()=> {
@@ -34,6 +35,8 @@ const mailOptions = {
 };
 
 var io = require('socket.io').listen(app.listen(server));
+
+var updateInterval = 1000;
 
 // Some Bootup loading
 var Boarddata = JSON.parse(fs.readFileSync('board_data.json', 'utf8'));
@@ -76,34 +79,18 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
-//
-// let interval;
-//
-// // The connection event returns a socket object which will be passed to the callback function.
-// io.on('connection', function (socket) {
-//     console.log("New client connected");
-//     if (interval) {
-//         clearInterval(interval);
-//     }
-//     interval = setInterval(() => getApiAndEmit(socket), 10000);
-//     socket.on("disconnect", () => {
-//         console.log("Client disconnected");
-//     });
-// });
 
-let interval;
 
 let childprocesses = [];
 // at beginning everything should be 0, now we only have 3 boards
 // and I am lazy so let's have 4 zeros
 let childcounts = [0,0,0,0];
+
+let interval;
 //new connection
 io.on('connection', function(socket){
   console.log("New client connected");
   var boards = [];
-  if (interval){
-    clearInterval(interval);
-  }
 
   socket.on('add board', function(config){
     var board_num = config.num;
@@ -112,7 +99,7 @@ io.on('connection', function(socket){
     console.log('add board with id ' + board_id + ' and with ip address of '+ config.IP);
 	//console.log('current count of board id: ' + childcounts[board_id]);
 	boards.push(board_id);
-	if(childcounts[board_id] == 0)
+	if(childcounts[board_id] === 0)
 	{
       //spawn child for querying to ip address continuously
       childprocesses[board_id] = fork('./inter_client.js');
@@ -140,13 +127,50 @@ io.on('connection', function(socket){
 
   });
 
+  socket.on('interval update', (data) => {
+        console.log("Value update interval is updated to " + value.toString());
+        if (interval){
+            clearInterval(interval);
+        }
+
+        updateInterval = data.interval;
+
+        interval = setInterval(function() {
+            var temperature_tmp = Math.floor(Math.random() * 1000);
+            if (temperature_tmp >= 1000) {
+                transporter.sendMail(mailOptions, function (err, info) {
+                    if(err)
+                        console.log(err) ;
+                    else
+                        console.log(info);
+                });
+                console.log('Email sent. Temperature at the moment is' + temperature_tmp.toString());
+            }
+            if (temperature_tmp >= 900) {
+                console.log('Notifier triggered.');
+                warningNotify.notify({
+                    title: 'Galapagos Monitor Temperature Warning:',
+                    message: 'Board ' + data.boardID.toString() + '\'s temperature has reached ' + temperature_tmp.toString() + ' !',
+                    sound: true,
+                    wait: true
+                },
+                function (err, response) {
+                    // Response is response from notification
+                });
+            }
+            io.emit('temp val update', {id: 0, board_num: 0, temperatureval: temperature_tmp});
+
+        }, updateInterval);
+
+    });
+
   // This happens when broswer disconnet from server
-  socket.on("disconnect", () => {
+  socket.on('disconnect', () => {
     console.log("Client disconnected");
     boards.forEach(function(value){
 	  childcounts[value]--;
 	  //console.log("value at index " + value + " is now " + childcounts[value]);
-	  if(childcounts[value] == 0){
+	  if(childcounts[value] === 0){
         console.log('killing child process listening on board id ' + value);
         childprocesses[value].kill();
 	  }
@@ -155,7 +179,7 @@ io.on('connection', function(socket){
 });
 
 //send random value all the time
-setInterval(function() {
+interval = setInterval(function() {
     var temperature_tmp = Math.floor(Math.random() * 1000);
     if (temperature_tmp >= 1000) {
         transporter.sendMail(mailOptions, function (err, info) {
@@ -166,9 +190,21 @@ setInterval(function() {
         });
         console.log('Email sent. Temperature at the moment is' + temperature_tmp.toString());
     }
+    if (temperature_tmp >= 900) {
+        console.log('Notifier triggered.');
+        warningNotify.notify({
+                title: 'Galapagos Monitor Temperature Warning:',
+                message: 'Board 0\'s temperature has reached ' + temperature_tmp.toString() + ' !',
+                sound: true,
+                wait: true
+            },
+            function (err, response) {
+                // Response is response from notification
+            });
+    }
     io.emit('temp val update', {id: 0, board_num: 0, temperatureval: temperature_tmp});
 
-}, 1000);
+}, updateInterval);
 
 
 module.exports = app;

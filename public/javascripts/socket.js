@@ -10,16 +10,16 @@ $(function (){
         $(temp).text(data.temperatureval);
         $(board).text(statusstring);
 
-		//pop out old data if # of datapoints is more than 9
-		if(configs[data.id].data.datasets[0].data.length >= Global.numGraphPoints){
-			configs[data.id].data.datasets.forEach(function(dataset) {
-        		dataset.data.shift();
-    		});
-		}
-
 		if(configs[data.id].data.datasets[0].data[configs[data.id].data.datasets[0].data.length - 1].y > Global.warningCap)
 			alert("Warning: Latest Value Beyond "+ Global.warningCap.toString()+" at board "+ data.id.toString() + " !", );
-	
+
+		//pop out old data if # of datapoints is more than 9
+		if(configs[data.id].data.datasets[0].data.length >= Global.numGraphPoints){
+			configs[data.id].data.datasets.forEach(function (dataset) {
+				dataset.data.splice(0, dataset.data.length - Global.numGraphPoints);
+			});
+		}
+
 		configs[data.id].data.datasets[0].data.push({
         	x: newTimeString(0),
         	y: data.temperatureval

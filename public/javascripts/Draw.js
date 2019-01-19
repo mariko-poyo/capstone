@@ -108,7 +108,20 @@ window.onload = function() {
     };
 
 	Http.open("GET", url);
-	Http.send(); 
+	Http.send();
+
+    document.getElementById('submitMaxItem').addEventListener('click', function() {
+        Global.numGraphPoints = document.getElementById("MaxItem").value;
+    });
+
+    document.getElementById('submitInterval').addEventListener('click', function() {
+        Global.updateInterval = document.getElementById("Interval").value;
+        socket.emit('interval update',{ interval: Global.updateInterval, boardID: Global.activeTab});
+    });
+
+    document.getElementById('submitWarningCap').addEventListener('click', function() {
+        Global.warningCap = document.getElementById("WarningCap").value;
+    });
 };
 
 //
@@ -129,17 +142,7 @@ window.onload = function() {
 // });
 
 
-document.getElementById('submitMaxItem').addEventListener('click', function() {
-    Global.numGraphPoints = document.getElementById("MaxItem").value;
-});
 
-document.getElementById('submitInterval').addEventListener('click', function() {
-    Global.updateInterval = document.getElementById("Interval").value;
-});
-
-document.getElementById('submitWarningCap').addEventListener('click', function() {
-    Global.warningCap = document.getElementById("WarningCap").value;
-});
 
 function openCanvas(evt, board){
 	var i, tabcontent, tablinks;
