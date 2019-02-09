@@ -46,7 +46,7 @@ liblwip4_includes:
 	${CP} -r contrib/ports/xilinx/include/netif ${INCLUDEDIR}
 	${CP} -r contrib/ports/xilinx/include/arch ${INCLUDEDIR}
 	${CP} -r contrib/ports/xilinx/include/lwipopts.h ${INCLUDEDIR}
-	${CP} -r contrib/ports/xilinx/include/xlwipconfig.h ${INCLUDEDIR}
+	${CP} -r contrib/ports/xilinx/include/xlwipconfig_custom.h ${INCLUDEDIR}
 
 clean:
 	rm -rf ${OUTS}

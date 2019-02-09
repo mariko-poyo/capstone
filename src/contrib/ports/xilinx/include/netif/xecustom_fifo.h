@@ -30,32 +30,37 @@
 *
 ******************************************************************************/
 
-#ifndef __XTOPOLOGY_H_
-#define __XTOPOLOGY_H_
+#ifndef __NETIF_XECUSTOM_FIFO_H__
+#define __NETIF_XECUSTOM_FIFO_H__
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-// Adding the extra enum is not enough, we still need to either generate xtopology_g.c properly or hack the compile flow
-enum xemac_types { xemac_type_unknown = -1, xemac_type_xps_emaclite, xemac_type_xps_ll_temac, xemac_type_axi_ethernet, xemac_type_emacps, xemac_custom_fifo};
+#include "lwip/netif.h"
+#include "netif/etharp.h"
+#include "netif/xpqueue.h"
+//#include "xemaclite.h" we need to include fifo stuff here
+#include "xstatus.h"
 
-struct xtopology_t {
-	unsigned emac_baseaddr;
-	enum xemac_types emac_type;
-	unsigned intc_baseaddr;
-	unsigned intc_emac_intr;	/* valid only for xemac_type_xps_emaclite */
-	unsigned scugic_baseaddr; /* valid only for Zynq */
-	unsigned scugic_emac_intr; /* valid only for GEM */
-};
+/* structure within each netif, encapsulating all information required for
+ * using a particular emaclite instance
+ */
+typedef struct {
+    
+    // something we will need for fifo access
 
-extern int xtopology_n_emacs;
-extern struct xtopology_t xtopology[];
+	/* queue to store overflow packets */
+	pq_queue_t *recv_q;
+	pq_queue_t *send_q;
+} xecustom_fifo_s;
 
-int xtopology_find_index(unsigned base);
+void 	xecustom_fifo_setmac(u32_t index, u8_t *addr);
+err_t 	xecustom_fifo_init(struct netif *netif);
+int 	xecustom_fifo_input(struct netif *netif);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif
+#endif /* __NETIF_XECUSTOM_FIFO_H__ */

@@ -31,7 +31,7 @@
 ******************************************************************************/
 
 #include "lwipopts.h"
-#include "xlwipconfig.h"
+#include "xlwipconfig_custom.h"
 
 #if !NO_SYS
 #ifdef OS_IS_XILKERNEL
