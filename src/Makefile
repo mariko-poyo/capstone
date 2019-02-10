@@ -1,6 +1,6 @@
 include Makefile.lwip
 include Makefile.adapter
-include Makefile.config
+include Makefile2.config
 
 COMPILER=
 ARCHIVER=

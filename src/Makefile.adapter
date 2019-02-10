@@ -1,4 +1,4 @@
-include Makefile.config
+include Makefile2.config
 
 PORT = contrib/ports/xilinx
 
