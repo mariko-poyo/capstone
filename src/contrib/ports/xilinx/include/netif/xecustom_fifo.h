@@ -37,10 +37,13 @@
 extern "C" {
 #endif
 
+#include "xparameters.h"
+#include "xlwipconfig_custom.h"
 #include "lwip/netif.h"
 #include "netif/etharp.h"
 #include "netif/xpqueue.h"
 //#include "xemaclite.h" we need to include fifo stuff here
+#include "xllfifo.h"
 #include "xstatus.h"
 
 /* structure within each netif, encapsulating all information required for
@@ -49,7 +52,7 @@ extern "C" {
 typedef struct {
     
     // something we will need for fifo access
-
+    XLlFifo      axififo;
 	/* queue to store overflow packets */
 	pq_queue_t *recv_q;
 	pq_queue_t *send_q;
@@ -58,6 +61,10 @@ typedef struct {
 void 	xecustom_fifo_setmac(u32_t index, u8_t *addr);
 err_t 	xecustom_fifo_init(struct netif *netif);
 int 	xecustom_fifo_input(struct netif *netif);
+
+//copied from xaxiemacif_fifo.h
+XStatus init_axi_fifo(struct xemac_s *xemac);
+XStatus axififo_send(xecustom_fifo_s *xecustom_fifo, struct pbuf *p);
 
 #ifdef __cplusplus
 }
