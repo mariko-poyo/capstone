@@ -63,6 +63,8 @@
 #include "netif/xemacpsif.h"
 #endif
 
+#include "netif/xecustom_fifo.h"
+
 #if !NO_SYS
 #include "lwip/tcpip.h"
 #endif
@@ -129,7 +131,11 @@ xemac_add(struct netif *netif,
 	netif->hwaddr_len = 6;
 	for (i = 0; i < 6; i++)
 		netif->hwaddr[i] = mac_ethernet_address[i];
-
+    // 496: add our own customized netif
+    return netif_add(netif, ipaddr, netmask, gw, 
+           (void*)(UINTPTR)mac_baseaddr,
+           xecustom_fifo_init, //our own init function
+           ethernet_input);
 	/* initialize based on MAC type */
 		switch (find_mac_type(mac_baseaddr)) {
 			case xemac_type_xps_emaclite:
@@ -213,6 +219,9 @@ xemacif_input(struct netif *netif)
 	int n_packets = 0;
 
 	switch (emac->type) {
+        case xemac_custom_fifo:
+            n_packets = xecustom_fifo_input(netif);
+            break;
 		case xemac_type_xps_emaclite:
 #ifdef XLWIP_CONFIG_INCLUDE_EMACLITE
 			n_packets = xemacliteif_input(netif);
