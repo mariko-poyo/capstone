@@ -1,8 +1,6 @@
 extends layout
 
 block content
-    h1= title
-    p Welcome to #{title}
     script(src='/static/utils.js')
     script(src='https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js')
     script(src='https://code.jquery.com/jquery-3.2.1.min.js')
@@ -11,47 +9,77 @@ block content
     script(src='/static/Draw.js')
     script(src='/static/socket.js')
 
+    nav(role = 'navigation', class='nabi_bar', id='nabi_bar')
+        ul(class="nabi_bar_list")
+            li
+                h1(id="name") 
+                    div #{title}
+                        span Welcome to #{title}
+            li 
+                a 
+                    div Dashboard
+                        span Current status
+            li 
+                a 
+                    div History
+                        span Command/Values
+            li 
+                a 
+                    div Contact
+                        span Administrator
+        
+    br
+    //- h1= title
+    //- p Welcome to #{title}
+
     block chart
-        div(id="board_tabs", class="tab")
-            button(class="tablinks", onclick='openCanvas(event,\'default\')') Default
-        div(id="tab_contents")
-            div(id="default", class="tabcontent")
-                h3 Default
-                p Displaying default randomly generated number
-                div(id="canvas_container", class="chart-container")
-                    canvas(id="canvas", class="chartjs-render-monitor")
-                    br
-                    br
+        div(class="chart")
+            div(id="board_tabs", class="tab")
+                button(class="tablinks", onclick='openCanvas(event,\'Overview\')') Overview
+            div(id="tab_contents" class="tab")
+                div(id="Overview", class="tabcontent")
+                    h3 Overview
+                    p Displaying overview
+                    div(id="canvas_container", class="chart-container")
+                        canvas(id="canvas", class="chartjs-render-monitor")
+                        br
+                        br
 
-        //button#addData Add Data
-        //button#removeData Remove Data
-        //br
-        //button#startInterval Start Generating Random Interval
-        //button#endInterval End Generating Random Interval
+    block controlPanel
+        div(class="controlPanel")
+            h1 Control Panel
+            input#MaxItem(type="int" value=10)
+            br
+            button#submitMaxItem Max points showed on chart
+            br
+            br
+            input#Interval(type="int" value=2000)
+            br
+            button#submitInterval Set Interval (ms)
+            p MIN Interval: 1000
+            br
+            input#WarningCap(type="int" value=100)
+            br
+            button#submitWarningCap Set Warning Cap
+            br
+            br
+
+            block boardList
+                select#selectBoard
+                button(type="button",onclick='addBoardFunc()') Add Board
+                table#monitoringtable
+                    tr
+                        th board#
+                        th status
+                        th temperature
+                    tr
+            //button#addData Add Data
+            //button#removeData Remove Data
+            //br
+            //button#startInterval Start Generating Random Interval
+            //button#endInterval End Generating Random Interval
+    
+    div(class="note")
         p Note: Moment.js is based on current system time, and now the graph unit is second. So range may vary greatly if you add/generate data after a period of time
-        input#MaxItem(type="int" value=10)
-        button#submitMaxItem Max points showed on chart
-        br
-        input#Interval(type="int" value=1000)
-        button#submitInterval Set Interval (ms)
-        p MIN Interval: 1000
-        br
-        input#WarningCap(type="int" value=950)
-        button#submitWarningCap Set Warning Cap
-        br
-        br
 
-    block boardList
-        select#selectBoard
-        button(type="button",onclick='addBoardFunc()') Add Board
-        table#monitoringtable
-            tr
-                th board#
-                th status
-                th temperature
-            tr
-                td default
-                td
-                    span#boardstatus1
-                td
-                    span#temperatureval1
+

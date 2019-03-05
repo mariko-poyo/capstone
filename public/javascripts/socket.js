@@ -1,128 +1,149 @@
-var socket = io();
-var config_file = './board_config.csv'; //cannot read file without selecting it....????
-var board_config = {};
+const socket = io('http://localhost:5556');
+
 
 $(function (){
-    socket.on('temp val update', function(data) {
+    socket.on('update', function(data) {
+		console.log("Updating Canvas: " + Global.activeTab);
+
         var statusstring = 'online';
-        var temp = '#temperatureval' + data.board_num.toString();
-        var board = '#boardstatus' + data.board_num.toString();
-        $(temp).text(data.temperatureval);
+        var temp = '#temperatureval' + data.id.toString();
+        var board = '#boardstatus' + data.id.toString();
+        $(temp).text(data.temperature);
         $(board).text(statusstring);
 
-		if(configs[data.id].data.datasets[0].data[configs[data.id].data.datasets[0].data.length - 1].y > Global.warningCap)
-			alert("Warning: Latest Value Beyond "+ Global.warningCap.toString()+" at board "+ data.id.toString() + " !", );
+		if(Global.configs[data.id].data.datasets[0].data[Global.configs[data.id].data.datasets[0].data.length - 1].y > Global.warningCap)
+			alert("Warning: Latest Value Beyond "+ Global.warningCap.toString()+" at board "+ Global.activeTab + " !", );
 
-		//pop out old data if # of datapoints is more than 9
-		if(configs[data.id].data.datasets[0].data.length >= Global.numGraphPoints){
-			configs[data.id].data.datasets.forEach(function (dataset) {
+		//pop out old data if # of datapoints is more than expected
+		if(Global.configs[data.id].data.datasets[0].data.length >= Global.numGraphPoints){
+			Global.configs[data.id].data.datasets.forEach(function (dataset) {
 				dataset.data.splice(0, dataset.data.length - Global.numGraphPoints);
 			});
 		}
 
-		configs[data.id].data.datasets[0].data.push({
-        	x: newTimeString(0),
-        	y: data.temperatureval
+		console.log("On Update: Actual source time = "+ data.time);
+		
+		Global.configs[data.id].data.datasets[0].data.push({
+        	x: newTimeString(0), // data.time
+        	y: data.temperature
     	});
 
 		window['Chart'+ data.id].update();
-    });
+	});
+	
+	socket.on('connect_error' , function(err){
+		console.log(err);
+	}); 
 });
 
 
-//load board_config.csv, if the file becomes bigger later -> async ?
-/*var reader = new FileReader();
-function pageOpened(){
-    reader.readAsText(config_file);
-    reader.addEventListener('loadend', processData);
-}
-
-function processData(){
-    var allLines = reader.result.split('\\/r/n'|'\\n');
-    console.log(allLines);
-
-    var headers = allLines[0].split(',');
-
-    for(var i = 0; i < allLines.length; i++){
-        var data = allTextLines[i].split(',');
-        if(data.length == headers.length){
-            console.log(data);
-        }
-    }
-}*/
-
 //function to add monitoring board
-var board_counter = 0;
 function addBoardFunc(){
 
     var board_name = document.getElementById('selectBoard').value;
-    console.log(board_name);
 
-	board_counter = board_counter + 1;
+	var id = Global.board_info[board_name].ID;
 
-	var config_tmp = {
+	console.log("Adding board " + board_name + ": " + id);
+
+	var config = {
     	type: 'line',
-    	data: {
-        	datasets: [{
-            	label: 'Dataset 1',
-            	backgroundColor: color(window.chartColors.blue).alpha(0.5).rgbString(), //set color to random??
-            	borderColor: window.chartColors.blue,
-            	fill: false,
-            	data: [{
-                	x: newTimeString(0),
-                	y: randomScalingFactor()
-            	}],
-        	}]
-    	},
-    	options: {
-        	responsive: true,
-        	title: {
-            	display: true,
-            	text: 'Template Chart'
-        	},
-        	scales: {
-            	xAxes: [{
-                	type: 'time',
-                	display: true,
-                	scaleLabel: {
-                    	display: true,
-                    	labelString: 'Time'
-                	},
-                	ticks: {
-                    	major: {
-                        	fontStyle: 'bold',
-                        	fontColor: '#FF0000'
-                    	}
-                	}
-            	}],
-            	yAxes: [{
-                	display: true,
-                	scaleLabel: {
-                    	display: true,
-                    	labelString: 'Temperature'
-                	}
-            	}]
-        	}	
-    	}
+		data: {
+			datasets: [{
+				label: 'Dataset 1',
+				backgroundColor: color(window.chartColors.blue).alpha(0.5).rgbString(), //set color to random??
+				borderColor: window.chartColors.blue,
+				fill: false,
+				data: [{}],
+			}]
+		},
+		options: {
+			responsive: true,
+			title: {
+				display: true,
+				text: 'Template Chart',
+				fontColor: '#FFFFFF',
+				fontSize: 20,
+				fontStyle: 'bold',
+				fontFamily: "Helvetica"
+			},
+			scales: {
+				xAxes: [{
+					type: 'time',
+					display: true,
+					scaleLabel: {
+						display: true,
+						labelString: 'Time',
+						fontColor: '#FFFFFF',
+						fontSize:20,
+						fontStyle: 'bold',
+						fontFamily: "Helvetica"
+					},
+					ticks: {
+						major: {
+							fontStyle: 'bold',
+							fontColor: '#FFFFFF'
+						},
+						
+					},
+					gridLines:{
+						color: '#FFFFFF',
+						lineWidth: 0.3
+					}
+				}],
+				yAxes: [{
+					display: true,
+					scaleLabel: {
+						display: true,
+						labelString: 'Temperature',
+						fontColor: '#FFFFFF',
+						fontSize:20,
+						fontStyle: 'bold',
+						fontFamily: "Helvetica"
+					},
+					gridLines:{
+						color: '#FFFFFF',
+						lineWidth: 0.5,
+						zeroLineColor: '#FFFFFF',
+						zeroLineWidth: 3,
+					},
+					ticks: {
+						fontStyle: 'bold',
+						fontColor: '#FFFFFF'
+					},
+					color: '#FFFFFF',
+					
+				}]
+			},
+			legend: {
+				labels:{
+					fontColor: 'rgb(255,255,255)',
+					fontSize:15,
+					fontStyle: 'bold',
+				}
+			}
+		}
 	};
 
 	//add line for new board
-	var string_to_add = '<tr>\n<td>'+ board_name+'</td>\n<td><span id="boardstatus'+ board_name+'">offline</span></td>\n<td><span id="temperatureval'+board_name+'">no data yet</span></td>';
+	var string_to_add = '<tr>\n<td>'+ board_name+'</td>\n<td><span id="boardstatus'+ id+'">offline</span></td>\n<td><span id="temperatureval'+id+'">no data yet</span></td>';
     $('#monitoringtable').append(string_to_add);
 
 	//add new canvas for new board
-	var canvas_to_add = '\n<div id='+board_name+' class="tabcontent">\n<h3>'+board_name+'</h3><canvas class="chartjs-render-monitor" id="canvas'+ board_counter+'" style="display: block; width: 862px; height: 431px;" width="862" height="431"></canvas>\n<br>\n<br>\n</div>';
+	var canvas_to_add = '\n<div id='+board_name+' class="tabcontent">\n<h3>'+board_name+'</h3><canvas class="chartjs-render-monitor" id="canvas'+ id +'" style="display: block; width: 862px; height: 431px;" width="862" height="431"></canvas>\n<br>\n<br>\n</div>';
 	var tab_to_add = '\n<button class="tablinks", onclick="openCanvas(event,\''+board_name+'\')">'+board_name+'</button>';
     $('#board_tabs').append(tab_to_add);
 	$('#tab_contents').append(canvas_to_add);
 	
-	var canvas_str = 'canvas' + board_counter;
+	var canvas_str = 'canvas' + id;
 	var ctx = document.getElementById(canvas_str).getContext('2d');
-	configs.push(config_tmp);
-    window['Chart' + board_counter] = new Chart(ctx, configs[board_counter]);
-
-    //send add board request to server back-end
-    board_config[board_name]["num"] = board_name;
-	board_config[board_name]["id"] = board_counter;
-    socket.emit('add board', board_config[board_name]);  //change board_counter to ip address later
+	Global.configs[Global.board_info[board_name].ID] = config;
+    window['Chart' + id] = new Chart(ctx, Global.configs[Global.board_info[board_name].ID]);
 }
+
+
+setInterval(function(){
+    if (Global.activeTab && Global.activeTab !== "Overview") {
+		socket.emit('request', Global.board_info[Global.activeTab].ID);
+    }
+},Global.updateInterval);

@@ -1,14 +1,3 @@
-function newDate(days) {
-    return moment().add(days, 'd').toDate();
-}
-
-function newDateString(days) {
-    return moment().add(days, 'd').format();
-}
-
-function newSecond(seconds) {
-    return moment().add(seconds, 's').toTimeString();
-}
 
 function newTimeString(seconds) {
     return moment().add(seconds, 's').format();
@@ -17,105 +6,141 @@ function newTimeString(seconds) {
 // Global
 var Global = {
     warningCap: 950,
-    updateInterval: 1000,
+    updateInterval: 2000,
     numGraphPoints: 10,
-    activeTab: NaN
+    activeTab: NaN,
+    board_info: {},
+    configs: []
 };
-
 
 var color = Chart.helpers.color;
 
-var configs = [];
-var config = {
-    type: 'line',
-    data: {
-        datasets: [{
-            label: 'Dataset 1',
-            backgroundColor: color(window.chartColors.blue).alpha(0.5).rgbString(), //set color to random??
-            borderColor: window.chartColors.blue,
-            fill: false,
-            data: [{
-                x: newTimeString(0),
-                y: randomScalingFactor()
-            }, {
-                x: newTimeString(1),
-                y: randomScalingFactor()
-            }, {
-                x: newTimeString(2),
-                y: randomScalingFactor()
-            }, {
-                x: newTimeString(3),
-                y: randomScalingFactor()
-            }],
-        }]
-    },
-    options: {
-        responsive: true,
-        title: {
-            display: true,
-            text: 'Template Chart'
-        },
-        scales: {
-            xAxes: [{
-                type: 'time',
-                display: true,
-                scaleLabel: {
-                    display: true,
-                    labelString: 'Time'
-                },
-                ticks: {
-                    major: {
-                        fontStyle: 'bold',
-                        fontColor: '#FF0000'
-                    }
-                }
-            }],
-            yAxes: [{
-                display: true,
-                scaleLabel: {
-                    display: true,
-                    labelString: 'Temperature'
-                }
-            }]
-        }
-    }
-};
-
 window.onload = function() {
-    configs.push(config);
-	var ctx = document.getElementById('canvas').getContext('2d');
-    window.Chart0 = new Chart(ctx, configs[0]);
 
 	const Http = new XMLHttpRequest();
-	const url='/getBoards';
+    const url='/getBoards';
+    
+    Http.open("GET", url);
+    Http.send();
+    
     Http.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
             boards_data = JSON.parse(this.responseText);
+            Global.board_info = boards_data;
+            console.log(Global.board_info.Default.ID);
             var op_to_add = '';
-            for(var board_name in boards_data){
-                board_config[board_name] = {};
-                console.log(board_name);
-                for(var key in boards_data[board_name]){
-                    console.log("Key: " + key + ", Value: " + boards_data[board_name][key]);
-                    board_config[board_name][key] = boards_data[board_name][key];
-                }
+            for(item in boards_data){
                 //set the config to the selection
-                op_to_add += '<br><option value="'+board_name+'">'+board_name+'</option>';
+                op_to_add += '<br><option value="'+item+'">'+item+'</option>';
             } 
             console.log(op_to_add);
             $('#selectBoard').append(op_to_add);
         }
     };
 
-	Http.open("GET", url);
-	Http.send();
+    var config = {
+        type: 'line',
+        data: {
+            datasets: [{
+                label: 'Dataset 1',
+                backgroundColor: color(window.chartColors.blue).alpha(0.5).rgbString(), //set color to random??
+                borderColor: window.chartColors.blue,
+                fill: false,
+                data: [{
+                    x: newTimeString(0),
+                    y: randomScalingFactor()
+                }, {
+                    x: newTimeString(1),
+                    y: randomScalingFactor()
+                }, {
+                    x: newTimeString(2),
+                    y: randomScalingFactor()
+                }, {
+                    x: newTimeString(3),
+                    y: randomScalingFactor()
+                }],
+            }]
+        },
+        options: {
+            responsive: true,
+            title: {
+                display: true,
+                text: 'Template Chart',
+                fontColor: '#FFFFFF',
+                fontSize: 20,
+                fontStyle: 'bold',
+                fontFamily: "Helvetica"
+            },
+            scales: {
+                xAxes: [{
+                    type: 'time',
+                    display: true,
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Time',
+                        fontColor: '#FFFFFF',
+                        fontSize:20,
+                        fontStyle: 'bold',
+                        fontFamily: "Helvetica"
+                    },
+                    ticks: {
+                        major: {
+                            fontStyle: 'bold',
+                            fontColor: '#FFFFFF'
+                        },
+                        
+                    },
+                    gridLines:{
+                        color: '#FFFFFF',
+                        lineWidth: 0.3
+                    }
+                }],
+                yAxes: [{
+                    display: true,
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Temperature',
+                        fontColor: '#FFFFFF',
+                        fontSize:20,
+                        fontStyle: 'bold',
+                        fontFamily: "Helvetica"
+                    },
+                    gridLines:{
+                        color: '#FFFFFF',
+                        lineWidth: 0.5,
+                        zeroLineColor: '#FFFFFF',
+                        zeroLineWidth: 3,
+                    },
+                    ticks: {
+                        fontStyle: 'bold',
+                        fontColor: '#FFFFFF'
+                    },
+                    color: '#FFFFFF',
+                    
+                }]
+            },
+            legend: {
+                labels:{
+                    fontColor: 'rgb(255,255,255)',
+                    fontSize:15,
+                    fontStyle: 'bold',
+                }
+            }
+        }
+    };
+
+    Global.configs[0] = config;
+	var ctx = document.getElementById('canvas').getContext('2d');
+    window.Chart114514 = new Chart(ctx, Global.configs[0]);
 
     document.getElementById('submitMaxItem').addEventListener('click', function() {
-        Global.numGraphPoints = document.getElementById("MaxItem").value;
+        reading = document.getElementById("MaxItem").value;
+        Global.numGraphPoints = (reading > 2) ? reading : 2;
     });
 
     document.getElementById('submitInterval').addEventListener('click', function() {
-        Global.updateInterval = document.getElementById("Interval").value;
+        reading = document.getElementById("Interval").value;
+        Global.updateInterval = (reading > 1000) ? reading : 1000;
         socket.emit('interval update',{ interval: Global.updateInterval, boardID: Global.activeTab});
     });
 
@@ -124,28 +149,10 @@ window.onload = function() {
     });
 };
 
-//
-// document.getElementById('addData').addEventListener('click', function() {
-//     configs[0].data.datasets[0].data.push({
-//         x: newTimeString(0),
-//         y: randomScalingFactor()
-//     });
-//     window.Chart0.update();
-// });
-//
-// document.getElementById('removeData').addEventListener('click', function() {
-//     configs[0].data.datasets.forEach(function(dataset) {
-//         dataset.data.pop();
-//     });
-//
-//     window.Chart0.update();
-// });
-
-
-
 
 function openCanvas(evt, board){
-	var i, tabcontent, tablinks;
+    var i, tabcontent, tablinks;
+    Global.activeTab = board;
 	tabcontent = document.getElementsByClassName("tabcontent");
 	tablinks = document.getElementsByClassName("tablinks");
 
@@ -155,11 +162,12 @@ function openCanvas(evt, board){
 	}
 
 	for(i=0; i < tablinks.length; i++){
-		tablinks[i].className = tablinks[i].className.replace("active","");
+		tablinks[i].className = tablinks[i].className.replace(" active","");
 	}
 
 	//show the clicked element
 	document.getElementById(board).style.display = "block";
-	evt.currentTarget.className += "active";
+	evt.currentTarget.className += " active";
 }
+
 
