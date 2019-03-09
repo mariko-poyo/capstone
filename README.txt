@@ -49,7 +49,14 @@ LWIP server
     /* write value 1 to offset 8 to auto reset */
 	AUTO_RESET_10BITS_mWriteReg(reset_ip, 0x8, 1);
     
-ToDo:
+ToDo for Haiqi and Mariko:
+    adding mac filter and eth type filter
+
     currently reset gets triggered before packet gets sent out to monitor system
-    So board dies without any notice to server. Need to see if I can fix this or not.
+    So board dies without any notice to server. Need to see if we can fix this or not.
+    
+    Temperature is not highly accurate, possibly we used wrong formula and also may due to
+    that we are not using floating point in calculation. We might still need to change the format
+    of temperature output but that should be a very small change
+    https://www.xilinx.com/support/documentation/user_guides/ug580-ultrascale-sysmon.pdf page40 for reference
     
