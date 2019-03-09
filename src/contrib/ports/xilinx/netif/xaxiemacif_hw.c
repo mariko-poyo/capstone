@@ -1,6 +1,6 @@
 /******************************************************************************
 *
-* Copyright (C) 2010 - 2017 Xilinx, Inc.  All rights reserved.
+* Copyright (C) 2010 - 2018 Xilinx, Inc.  All rights reserved.
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,8 @@
 #include "netif/xaxiemacif.h"
 #include "lwipopts.h"
 
+extern enum ethernet_link_status eth_link_status;
+
 XAxiEthernet_Config *xaxiemac_lookup_config(unsigned mac_base)
 {
 	extern XAxiEthernet_Config XAxiEthernet_ConfigTable[];
@@ -55,14 +57,10 @@ void init_axiemac(xaxiemacif_s *xaxiemac, struct netif *netif)
 	unsigned link_speed = 1000;
 	unsigned options;
 	XAxiEthernet *xaxiemacp;
-	XAxiEthernet_Config *mac_config;
-
-	/* obtain config of this emac */
-	mac_config = xaxiemac_lookup_config(mac_address);
 
 	xaxiemacp = &xaxiemac->axi_ethernet;
 
-	XAxiEthernet_CfgInitialize(xaxiemacp, mac_config, mac_config->BaseAddress);
+	XAxiEthernet_Reset(xaxiemacp);
 
 	options = XAxiEthernet_GetOptions(xaxiemacp);
 	options |= XAE_FLOW_CONTROL_OPTION;
@@ -78,8 +76,13 @@ void init_axiemac(xaxiemacif_s *xaxiemac, struct netif *netif)
 
 	/* set mac address */
 	XAxiEthernet_SetMacAddress(xaxiemacp, (unsigned char*)(netif->hwaddr));
-	link_speed = Phy_Setup(xaxiemacp);
+	link_speed = phy_setup_axiemac(xaxiemacp);
 	XAxiEthernet_SetOperatingSpeed(xaxiemacp, link_speed);
+
+	if (link_speed == 0)
+		eth_link_status = ETH_LINK_DOWN;
+	else
+		eth_link_status = ETH_LINK_UP;
 
 	/* Setting the operating speed of the MAC needs a delay. */
 	{

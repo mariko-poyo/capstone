@@ -3,7 +3,7 @@
 
 #include "xparameters.h"
 #include "netif/xaxiemacif.h"
-#include "xlwipconfig_custom.h"
+#include "xlwipconfig.h"
 
 #ifdef __cplusplus
 extern "C" {

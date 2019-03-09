@@ -132,7 +132,12 @@ proc lwip_axi_ethernet_hw_drc {libhandle emac} {
 	}
 
 	# find out what is connected to AXI
-	set target_periph_type [axieth_target_periph $emac]
+	#Galapagos: avoid calling axieth_target_periph as it will cause compile error
+	if {$emacname == "axi_fifo_mm_s"} {
+		set target_periph_type "axi_fifo_mm_s"
+	} else {
+		set target_periph_type [axieth_target_periph $emac]
+	}
 	set tx_csum [common::get_property CONFIG.tcp_tx_checksum_offload $libhandle]
 	set rx_csum [common::get_property CONFIG.tcp_rx_checksum_offload $libhandle]
 
@@ -221,7 +226,8 @@ proc lwip_hw_drc {libhandle emacs_list} {
 			lwip_elite_hw_drc $libhandle $ip
 		} elseif {$iptype == "xps_ll_temac"} {
 			lwip_temac_hw_drc $libhandle $ip
-		} elseif {$iptype == "axi_ethernet" || $iptype == "axi_ethernet_buffer"} {
+		#Galapagos: Add FIFO
+		} elseif {$iptype == "axi_ethernet" || $iptype == "axi_ethernet_buffer" || $iptype == "axi_fifo_mm_s"} {
 			lwip_axi_ethernet_hw_drc $libhandle $ip
 		}
 	}
@@ -252,13 +258,15 @@ proc get_emac_periphs {processor} {
 
 	foreach periph $periphs_list {
 		set periphname [common::get_property IP_NAME $periph]
+		#Galapagos: add 10G ethernet to accepted peripheral list so that LWIP can compile
 		if {$periphname == "xps_ethernetlite"
 			|| $periphname == "opb_ethernetlite"
 			|| $periphname == "axi_ethernet"
 			|| $periphname == "axi_ethernet_buffer"
 			|| $periphname == "axi_ethernetlite"
 			|| $periphname == "ps7_ethernet"
-			|| $periphname == "psu_ethernet"} {
+			|| $periphname == "psu_ethernet"
+			|| $periphname == "axi_fifo_mm_s"} {
 			lappend emac_periphs_list $periph
 		} elseif {$periphname == "xps_ll_temac"} {
 			set emac0_enabled "0"
@@ -399,7 +407,8 @@ proc generate_lwip_opts {libhandle} {
 		if {$iptype == "xps_ethernetlite" || $iptype == "opb_ethernetlite" || $iptype == "axi_ethernetlite"} {
 			set have_emaclite 1
 		}
-		if {$iptype == "axi_ethernet"} {
+		#Galapagos: add FIFO
+		if {$iptype == "axi_ethernet" || $iptype == "axi_fifo_mm_s"} {
 			set checksum_txoption [common::get_property CONFIG.TXCSUM $emac]
 			set checksum_txoption [get_checksum $checksum_txoption]
 			set checksum_rxoption [common::get_property CONFIG.RXCSUM $emac]
@@ -650,7 +659,8 @@ proc generate_lwip_opts {libhandle} {
 	set have_ethonzynq 0
 	foreach emac $emac_periphs_list {
 		set iptype [common::get_property IP_NAME $emac]
-		if {$iptype == "axi_ethernet" || $iptype == "axi_ethernet_buffer" } {
+		#Galapagos: Add FIFO
+		if {$iptype == "axi_ethernet" || $iptype == "axi_ethernet_buffer" || $iptype == "axi_fifo_mm_s" } {
 			set have_ethonzynq 1
 		}
 	}
@@ -1110,7 +1120,8 @@ proc generate_topology {libhandle} {
 				generate_topology_per_emac $tfd topology
 				incr topology_size 1
 			}
-		} elseif {$iptype == "axi_ethernet" || $iptype == "axi_ethernet_buffer"} {
+		#Galapagos: Add FIFO
+		} elseif {$iptype == "axi_ethernet" || $iptype == "axi_ethernet_buffer" || $iptype == "axi_fifo_mm_s"} {
 			update_axi_ethernet_topology $emac $processor topology
 			generate_topology_per_emac $tfd topology
 			incr topology_size 1
@@ -1175,7 +1186,11 @@ proc generate_adapterconfig_makefile {libhandle} {
 			set have_emaclite 1
 		} elseif {$iptype == "xps_ll_temac"} {
 			set have_temac 1
-		} elseif {$iptype == "axi_ethernet" || $iptype == "axi_ethernet_buffer"} {
+		#Galapagos: Add FIFO
+		} elseif {$iptype == "axi_fifo_mm_s"} {
+			set have_axi_ethernet 1
+			set have_axi_ethernet_fifo 1
+		} elseif {$iptype == "axi_ethernet" || $iptype == "axi_ethernet_buffer" } {
 			set have_axi_ethernet 1
 			# Find the AXI FIFO or AXI DMA that this emac is connected to.
 			set target_periph_type [axieth_target_periph $emac]
@@ -1310,6 +1325,10 @@ proc generate_adapterconfig_include {libhandle} {
 			set have_emaclite 1
 		} elseif {$iptype == "xps_ll_temac"} {
 			set have_temac 1
+		#Galapagos: Add FIFO
+		} elseif {$iptype == "axi_fifo_mm_s"} {
+			set have_axi_ethernet 1
+			set have_axi_ethernet_fifo 1
 		} elseif {$iptype == "axi_ethernet" || $iptype == "axi_ethernet_buffer"} {
 			# Find the AXI FIFO or AXI DMA that this emac is connected to.
 			set target_periph_type [axieth_target_periph $emac]

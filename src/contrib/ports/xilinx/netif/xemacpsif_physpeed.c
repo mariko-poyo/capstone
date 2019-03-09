@@ -45,12 +45,13 @@
 *   about the detected PHYs. The array phymapemac0 is used for Emac0 and
 *   phymapemac1 is for Emac1.
 * - The users need to parse the corresponding arrays, phymapemac0 or phymapemac1
-*   to know the available PHYs for a MAC. The users then need to call phy_setup
-*   to setup the PHYs for proper speed setting. The API phy_setup should be called
-*   with the PHY address for which the speed needs to be negotiated or configured.
-*   In a specific use case, if 2 PHYs are connected to Emac0 with addresses of 7
-*   and 11, then users get these address details from phymapemac0 (after calling
-*   detect_phy) and then call phy_setup twice, with ab address of 7 and 11.
+*   to know the available PHYs for a MAC. The users then need to call
+*   phy_setup_emacps to setup the PHYs for proper speed setting. The API
+*   phy_setup_emacps should be called with the PHY address for which the speed
+*   needs to be negotiated or configured. In a specific use case, if 2 PHYs are
+*   connected to Emac0 with addresses of 7 and 11, then users get these address
+*   details from phymapemac0 (after calling detect_phy) and then call
+*   phy_setup_emacps twice, with ab address of 7 and 11.
 * - Points to note: The MAC can operate at only one speed. If a MAC is connected
 *   to multiple PHYs, then all PHYs must negotiate and configured for the same
 *   speed.
@@ -110,51 +111,12 @@
 #include "lwipopts.h"
 #include "xparameters_ps.h"
 #include "xparameters.h"
+#include "xemac_ieee_reg.h"
 
 #if defined (__aarch64__)
 #include "bspconfig.h"
 #include "xil_smc.h"
 #endif
-
-/* Advertisement control register. */
-#define ADVERTISE_10HALF		0x0020  /* Try for 10mbps half-duplex  */
-#define ADVERTISE_10FULL		0x0040  /* Try for 10mbps full-duplex  */
-#define ADVERTISE_100HALF		0x0080  /* Try for 100mbps half-duplex */
-#define ADVERTISE_100FULL		0x0100  /* Try for 100mbps full-duplex */
-
-#define ADVERTISE_100			(ADVERTISE_100FULL | ADVERTISE_100HALF)
-#define ADVERTISE_10			(ADVERTISE_10FULL | ADVERTISE_10HALF)
-#define ADVERTISE_1000			0x0300
-
-#define IEEE_CONTROL_REG_OFFSET				0
-#define IEEE_STATUS_REG_OFFSET				1
-#define IEEE_AUTONEGO_ADVERTISE_REG			4
-#define IEEE_PARTNER_ABILITIES_1_REG_OFFSET	5
-#define IEEE_1000_ADVERTISE_REG_OFFSET		9
-#define IEEE_COPPER_SPECIFIC_CONTROL_REG	16
-#define IEEE_SPECIFIC_STATUS_REG			17
-#define IEEE_COPPER_SPECIFIC_STATUS_REG_2	19
-#define IEEE_CONTROL_REG_MAC				21
-#define IEEE_PAGE_ADDRESS_REGISTER			22
-#define IEEE_CTRL_1GBPS_LINKSPEED_MASK		0x2040
-#define IEEE_CTRL_LINKSPEED_MASK			0x0040
-#define IEEE_CTRL_LINKSPEED_1000M			0x0040
-#define IEEE_CTRL_LINKSPEED_100M			0x2000
-#define IEEE_CTRL_LINKSPEED_10M				0x0000
-#define IEEE_CTRL_RESET_MASK				0x8000
-
-#define IEEE_SPEED_MASK		0xC000
-#define IEEE_SPEED_1000		0x8000
-#define IEEE_SPEED_100		0x4000
-
-#define IEEE_CTRL_RESET_MASK				0x8000
-#define IEEE_CTRL_AUTONEGOTIATE_ENABLE		0x1000
-#define IEEE_STAT_AUTONEGOTIATE_COMPLETE	0x0020
-#define IEEE_STAT_AUTONEGOTIATE_RESTART		0x0200
-#define IEEE_RGMII_TXRX_CLOCK_DELAYED_MASK	0x0030
-#define IEEE_ASYMMETRIC_PAUSE_MASK			0x0800
-#define IEEE_PAUSE_MASK						0x0400
-#define IEEE_AUTONEG_ERROR_MASK				0x8000
 
 #define PHY_DETECT_REG  						1
 #define PHY_IDENTIFIER_1_REG					2
@@ -220,7 +182,7 @@ static u32_t configure_IEEE_phy_speed(XEmacPs *xemacpsp, u32_t phy_addr, u32_t s
 #endif
 
 #ifdef PCM_PMA_CORE_PRESENT
-u32_t phy_setup (XEmacPs *xemacpsp, u32_t phy_addr)
+u32_t phy_setup_emacps (XEmacPs *xemacpsp, u32_t phy_addr)
 {
 	u32_t link_speed;
 	u16_t regval;
@@ -353,7 +315,7 @@ void detect_phy(XEmacPs *xemacpsp)
 	}
 }
 
-u32_t phy_setup (XEmacPs *xemacpsp, u32_t phy_addr)
+u32_t phy_setup_emacps (XEmacPs *xemacpsp, u32_t phy_addr)
 {
 	u32_t link_speed;
 	u32_t conv_present = 0;
