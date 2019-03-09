@@ -41,6 +41,8 @@
 #include "xintc.h"
 #endif
 
+#define LWIP_DEBUG 0
+
 /* Define those to better describe your network interface. */
 // whatever
 #define IFNAME0 'w'
@@ -78,7 +80,6 @@ xllfifo_recv_handler(struct xemac_s *xemac)
 	while (XLlFifo_RxOccupancy(llfifo)) {
 		/* find packet length */
 		frame_length = XLlFifo_RxGetLen(llfifo);
-		xil_printf("recv_handler: frame_length = %d\n", frame_length);
 		/* allocate a pbuf */
 		p = pbuf_alloc(PBUF_RAW, frame_length, PBUF_POOL);
 		if (!p) {
@@ -95,7 +96,9 @@ xllfifo_recv_handler(struct xemac_s *xemac)
 
 		/* receive packet */
 		XLlFifo_Read(llfifo, p->payload, frame_length);
-
+		if(LWIP_DEBUG){
+			xil_printf("recv_handler: frame_length = %d\r\n", frame_length);
+		}
 		/* store it in the receive queue, where it'll be processed by xemacif input thread */
 		if (pq_enqueue(xecustom_fifo->recv_q, (void*)p) < 0) {
 #if LINK_STATS
@@ -186,7 +189,7 @@ XStatus init_axi_fifo(struct xemac_s *xemac)
 
 	/* initialize ll fifo */
 	XLlFifo_Initialize(&xecustom_fifo->axififo,
-			XPAR_AXI_FIFO_MM_S_0_BASEADDR); //0x44A00000U
+			XPAR_MB_ETH_SYSTEM_AXI_FIFO_MM_S_0_BASEADDR);
 
 	/* Clear any pending FIFO interrupts */
 	XLlFifo_IntClear(&xecustom_fifo->axififo, XLLF_INT_ALL_MASK);
@@ -201,7 +204,7 @@ XStatus init_axi_fifo(struct xemac_s *xemac)
 
 	/* connect & enable FIFO interrupt */
 	XIntc_RegisterFastHandler(xtopologyp->intc_baseaddr,
-			XPAR_MICROBLAZE_0_AXI_INTC_AXI_FIFO_MM_S_0_INTERRUPT_INTR, //4U
+			XPAR_MB_ETH_SYSTEM_MICROBLAZE_0_AXI_INTC_MB_ETH_SYSTEM_AXI_FIFO_MM_S_0_INTERRUPT_INTR,
 			(XFastInterruptHandler)xllfifo_fastintr_handler);
 
 #endif
@@ -212,7 +215,8 @@ XStatus init_axi_fifo(struct xemac_s *xemac)
 
 		/* form new mask enabling SDMA & ll_temac interrupts */
 		cur_mask = cur_mask
-				| (1 << XPAR_MICROBLAZE_0_AXI_INTC_AXI_FIFO_MM_S_0_INTERRUPT_INTR);
+
+				| (1 << XPAR_MB_ETH_SYSTEM_MICROBLAZE_0_AXI_INTC_MB_ETH_SYSTEM_AXI_FIFO_MM_S_0_INTERRUPT_INTR);
 
 		/* set new mask */
 		XIntc_EnableIntr(xtopologyp->intc_baseaddr, cur_mask);
@@ -231,11 +235,15 @@ XStatus axififo_send(xecustom_fifo_s *xecustom_fifo, struct pbuf *p)
 		/* write frame data to FIFO */
 		XLlFifo_Write(llfifo, q->payload, q->len);
 		l += q->len;
-		xil_printf("axififo_send: qlen = %d\n", q->len);
+		if(LWIP_DEBUG){
+			xil_printf("axififo_send: qlen = %d\r\n", q->len);
+		}
 	}
 
 	/* initiate transmit */
-	xil_printf("axififo_send: l = %d\n", l);
+	if(LWIP_DEBUG){
+		xil_printf("axififo_send: l = %d\r\n", l);
+	}
 	XLlFifo_TxSetLen(llfifo, l);
 
 	return 0;
@@ -275,12 +283,14 @@ static err_t _unbuffered_low_level_output(xecustom_fifo_s *xecustom_fifo,
 														struct pbuf *p)
 {
 	XStatus status = 0;
-	int i;
-	xil_printf("output: len: %d BEGIN\n", p->len);
-	for(i = 0; i < p->len; i++){
-		xil_printf("i = %d: %x\n", i, (char)(((char*)p->payload)[i]));
+	if(LWIP_DEBUG){
+		int i;
+		xil_printf("output: len: %d BEGIN\r\n", p->len);
+		for(i = 0; i < p->len; i++){
+			xil_printf("i = %d: %x\r\n", i, (char)(((char*)p->payload)[i]));
+		}
+		xil_printf("output END\r\n");
 	}
-	xil_printf("output END\n");
     status = axififo_send(xecustom_fifo, p);
 
 
@@ -406,12 +416,14 @@ static struct pbuf *low_level_input(struct netif *netif)
 
 	/* return one packet from receive q */
 	p = (struct pbuf *)pq_dequeue(xecustom_fifo->recv_q);
-	int i;
-	xil_printf("input: len: %d BEGIN\n", p->len);
-	for(i = 0; i < p->len; i++){
-		xil_printf("i = %d: %x\n", i, (char)(((char*)p->payload)[i]));
+	if(LWIP_DEBUG){
+		int i;
+		xil_printf("input: len: %d BEGIN\r\n", p->len);
+		for(i = 0; i < p->len; i++){
+			xil_printf("i = %d: %x\r\n", i, (char)(((char*)p->payload)[i]));
+		}
+		xil_printf("input END\r\n");
 	}
-	xil_printf("input END\n");
 	return p;
 }
 
@@ -467,3 +479,4 @@ int 	xecustom_fifo_input(struct netif *netif)
 	}
 	return 1;
 }
+
