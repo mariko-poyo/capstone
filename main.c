@@ -128,7 +128,8 @@ int IicPhyReset(void);
 #endif
 #endif
 
-volatile char* input_mb = (char*)0x44a20000;
+// not used until mac address filter is ready
+//volatile char* input_mb = (char*)0x44a20000;
 
 unsigned int temp_threshold = 0;
 extern volatile char* reset_ip;
@@ -176,7 +177,6 @@ int main()
 #endif	
 #endif
 	print_app_header();
-
 	/*
 	//Here mac address is 4649cafebabe
 	int mac_addr;
@@ -190,6 +190,7 @@ int main()
 	mac_addr = INPUT_FROM_MB_mReadReg(input_mb, INPUT_FROM_MB_S00_AXI_SLV_REG3_OFFSET);
 	xil_printf("current mac_addr(lower 32bits): %x\r\n", mac_addr);
 	*/
+    
 	lwip_init();
 
 #if (LWIP_IPV6 == 0)
@@ -254,8 +255,7 @@ int main()
 
 #endif
 
-	//variables
-
+    /* Instantiate sysmon */
 	XSysMon_Config *sysmon_config;
 
 	sysmon_config = XSysMon_LookupConfig(XPAR_TEMP_IP_SYSTEM_MANAGEMENT_WIZ_0_DEVICE_ID);
@@ -264,12 +264,16 @@ int main()
 	}
 	XSysMon_CfgInitialize(&SysMonInst, sysmon_config, sysmon_config->BaseAddress);
 
-	// enable temp update from xadc
+	// enable temperature update from xadc to auto reset IP
 	XSysMon_EnableTempUpdate(&SysMonInst);
 
+    /* convert 60 into hex form */
 	temp_threshold = ceil((60 + 273.6777) * 1024 / 501.3743);
 
+    
+	/* write value threshold to offset 4 */
 	AUTO_RESET_10BITS_mWriteReg(reset_ip, 0x4, (u32)temp_threshold);
+    /* write value 1 to offset 8 to auto reset */
 	AUTO_RESET_10BITS_mWriteReg(reset_ip, 0x8, 1);
 
 
