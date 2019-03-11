@@ -1,6 +1,6 @@
 include Makefile.lwip
 include Makefile.adapter
-include Makefile2.config
+include Makefile.config
 
 COMPILER=
 ARCHIVER=
@@ -46,7 +46,7 @@ liblwip4_includes:
 	${CP} -r contrib/ports/xilinx/include/netif ${INCLUDEDIR}
 	${CP} -r contrib/ports/xilinx/include/arch ${INCLUDEDIR}
 	${CP} -r contrib/ports/xilinx/include/lwipopts.h ${INCLUDEDIR}
-	${CP} -r contrib/ports/xilinx/include/xlwipconfig_custom.h ${INCLUDEDIR}
+	${CP} -r contrib/ports/xilinx/include/xlwipconfig.h ${INCLUDEDIR}
 
 clean:
 	rm -rf ${OUTS}

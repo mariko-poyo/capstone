@@ -38,7 +38,7 @@ extern "C" {
 #endif
 
 #include "xparameters.h"
-#include "xlwipconfig_custom.h"
+#include "xlwipconfig.h"
 #include "lwip/netif.h"
 #include "netif/etharp.h"
 #include "netif/xpqueue.h"

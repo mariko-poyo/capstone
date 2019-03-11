@@ -1153,6 +1153,7 @@ proc generate_adapterconfig_makefile {libhandle} {
 	set processor_type [common::get_property IP_NAME $processor]
 	set emac_periphs_list [get_emac_periphs $processor]
 
+	set have_custom_fifo 0
 	set have_emaclite 0
 	set have_temac 0
 	set have_axi_ethernet 0
@@ -1188,8 +1189,7 @@ proc generate_adapterconfig_makefile {libhandle} {
 			set have_temac 1
 		#Galapagos: Add FIFO
 		} elseif {$iptype == "axi_fifo_mm_s"} {
-			set have_axi_ethernet 1
-			set have_axi_ethernet_fifo 1
+			set have_custom_fifo 1
 		} elseif {$iptype == "axi_ethernet" || $iptype == "axi_ethernet_buffer" } {
 			set have_axi_ethernet 1
 			# Find the AXI FIFO or AXI DMA that this emac is connected to.
@@ -1253,6 +1253,10 @@ proc generate_adapterconfig_makefile {libhandle} {
             }
         }
 
+	if {$have_custom_fifo == 1} {
+		puts $fd "CONFIG_CUSTOMFIFO=y"
+	}
+
 	if {$have_emaclite == 1} {
 		puts $fd "CONFIG_XEMACLITE=y"
 	}
@@ -1291,6 +1295,7 @@ proc generate_adapterconfig_include {libhandle} {
 	set processor_type [common::get_property IP_NAME $processor]
 	set emac_periphs_list [get_emac_periphs $processor]
 
+	set have_custom_fifo 0
 	set have_emaclite 0
 	set have_temac 0
 	set have_axi_ethernet 0
@@ -1327,8 +1332,7 @@ proc generate_adapterconfig_include {libhandle} {
 			set have_temac 1
 		#Galapagos: Add FIFO
 		} elseif {$iptype == "axi_fifo_mm_s"} {
-			set have_axi_ethernet 1
-			set have_axi_ethernet_fifo 1
+			set have_custom_fifo 1
 		} elseif {$iptype == "axi_ethernet" || $iptype == "axi_ethernet_buffer"} {
 			# Find the AXI FIFO or AXI DMA that this emac is connected to.
 			set target_periph_type [axieth_target_periph $emac]
@@ -1361,6 +1365,11 @@ proc generate_adapterconfig_include {libhandle} {
 	puts $fd "/* This is a generated file - do not edit */"
 	puts $fd ""
 
+	# adding for custom fifo
+	if {$have_custom_fifo == 1} {
+		puts $fd "\#define XLWIP_CONFIG_INCLUDE_CUSTOMFIFO 1"
+	}
+    
 	if {$force_axieth_on_zynq == 1 && $have_axi_ethernet == 1} {
 		puts $fd "\#define XLWIP_CONFIG_INCLUDE_AXIETH_ON_ZYNQ 1"
 	}

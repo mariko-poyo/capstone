@@ -1,5 +1,5 @@
 #include "lwipopts.h"
-#include "xlwipconfig_custom.h"
+#include "xlwipconfig.h"
 
 #if !NO_SYS
 #ifdef OS_IS_XILKERNEL

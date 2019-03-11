@@ -1,4 +1,4 @@
-include Makefile2.config
+include Makefile.config
 
 PORT = contrib/ports/xilinx
 
@@ -22,7 +22,7 @@ ADAPTER_INCLUDES = $(PORT)/include/arch/cc.h \
 		   $(PORT)/netif/xaxiemacif_hw.h \
 		   $(PORT)/netif/xemacpsif_hw.h \
 		   $(PORT)/include/lwipopts.h \
-		   $(PORT)/include/xlwipconfig_custom.h
+		   $(PORT)/include/xlwipconfig.h
 
 EMACLITE_SRCS = $(PORT)/netif/xemacliteif.c
 

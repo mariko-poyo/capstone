@@ -31,7 +31,7 @@
 ******************************************************************************/
 
 #include "lwipopts.h"
-#include "xlwipconfig_custom.h"
+#include "xlwipconfig.h"
 #include "xemac_ieee_reg.h"
 
 #if !NO_SYS
