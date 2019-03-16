@@ -39,47 +39,36 @@ window.onload = function() {
     };
 
     var config = {
-        type: 'line',
+        type: 'bar',
         data: {
             datasets: [{
-                label: 'Dataset 1',
-                backgroundColor: color(window.chartColors.blue).alpha(0.5).rgbString(), //set color to random??
+                label: ['Test data'],     // Board names update here
+                backgroundColor: color(window.chartColors.blue).alpha(0.8).rgbString(), 
                 borderColor: window.chartColors.blue,
+                hoverBackgroundColor: color(window.chartColors.blue).alpha(0.5).rgbString(),
+                hoverBorderColor: color(window.chartColors.blue).alpha(0.8).rgbString(),
+                borderWidth: 3,
                 fill: false,
                 data: [{
-                    x: newTimeString(0),
-                    y: randomScalingFactor()
-                }, {
-                    x: newTimeString(1),
-                    y: randomScalingFactor()
-                }, {
-                    x: newTimeString(2),
-                    y: randomScalingFactor()
-                }, {
-                    x: newTimeString(3),
-                    y: randomScalingFactor()
+                    y: 50
                 }],
             }]
         },
         options: {
-            responsive: true,
-            title: {
-                display: true,
-                text: 'Template Chart',
-                fontColor: '#FFFFFF',
-                fontSize: 20,
-                fontStyle: 'bold',
-                fontFamily: "Helvetica"
-            },
             scales: {
                 xAxes: [{
-                    type: 'time',
+                    type: 'category',
+                    labels: ['Default'],    // Board IDs update here
                     display: true,
+                    barPercentage: 0.5,
+                    barThickness: 'flex',
+                    maxBarThickness: 50,
+                    minBarLength: 2,
                     scaleLabel: {
                         display: true,
-                        labelString: 'Time',
+                        labelString: 'Board',
                         fontColor: '#FFFFFF',
-                        fontSize:20,
+                        fontSize: 20,
                         fontStyle: 'bold',
                         fontFamily: "Helvetica"
                     },
@@ -87,42 +76,37 @@ window.onload = function() {
                         major: {
                             fontStyle: 'bold',
                             fontColor: '#FFFFFF'
-                        },
-                        
+                        }
                     },
-                    gridLines:{
-                        color: '#FFFFFF',
-                        lineWidth: 0.3
-                    }
+                    color: '#FFFFFF'
                 }],
                 yAxes: [{
                     display: true,
-                    scaleLabel: {
-                        display: true,
-                        labelString: 'Temperature',
-                        fontColor: '#FFFFFF',
-                        fontSize:20,
-                        fontStyle: 'bold',
-                        fontFamily: "Helvetica"
-                    },
-                    gridLines:{
+                    gridLines: {
                         color: '#FFFFFF',
                         lineWidth: 0.5,
                         zeroLineColor: '#FFFFFF',
                         zeroLineWidth: 3,
+                    },
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Temperature',
+                        fontColor: '#FFFFFF',
+                        fontSize: 20,
+                        fontStyle: 'bold',
+                        fontFamily: "Helvetica"
                     },
                     ticks: {
                         fontStyle: 'bold',
                         fontColor: '#FFFFFF'
                     },
                     color: '#FFFFFF',
-                    
                 }]
             },
             legend: {
-                labels:{
+                labels: {
                     fontColor: 'rgb(255,255,255)',
-                    fontSize:15,
+                    fontSize: 15,
                     fontStyle: 'bold',
                 }
             }

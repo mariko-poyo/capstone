@@ -83,7 +83,11 @@ io.on('connection', function(socket){
     // Receive request from client. TODO: consider large scale connection in the future.
     socket.on('request', (ID) => {
         MongoClient.connect(url, { useNewUrlParser: true }, function(err, db){
-            if (err) throw err;
+            if (err) {
+                console.log("\x1b[34mio.connection:\x1b[0m Error: Database is offline!");
+                return;
+                // throw err;
+            }
             
             console.log("\x1b[34mio.connection:\x1b[0m Database connected.");
     
@@ -95,7 +99,6 @@ io.on('connection', function(socket){
                 io.emit('update', {id: ID, time: result[0].time, temperature: result[0].temp});
                 db.close();
                 console.log("\x1b[34mio.connection:\x1b[0m Database disconnected.");
-            
             });
         });
     });

@@ -70,6 +70,11 @@ function addBoardFunc(){
 			scales: {
 				xAxes: [{
 					type: 'time',
+					time: {
+						displayFormats: {
+							quarter: 'MMM D h:mm:ss a'
+						}
+					},	
 					display: true,
 					scaleLabel: {
 						display: true,
