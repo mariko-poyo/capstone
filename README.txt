@@ -17,8 +17,9 @@ LWIP server
 
 6. Example of getting temperature:
     volatile char* xadc = (char *)XPAR_SYSMON_0_BASEADDR;
-	int data2 = (*(int*)(xadc + 0x400)) >> 6;
-	int data_celsius = data2 * 501.3743 /1024 -273.6777;
+	int ADC_CODE = (*(int*)(xadc + 0x400)) >> 6;
+    
+    on the server side, temperature needs to be calculated as data_celsius = ADC_CODE * 501.3743 /1024 -273.6777;
     
 7. example of immidiate reset:
     /* write value 1 to offset 0 */

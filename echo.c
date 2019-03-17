@@ -75,8 +75,8 @@ err_t recv_callback(void *arg, struct tcp_pcb *tpcb,
 	tcp_recved(tpcb, p->len);
 
 	volatile char* xadc = (char *)XPAR_SYSMON_0_BASEADDR;
-	int data2 = (*(int*)(xadc + 0x400)) >> 6;
-	int data_celsius = data2 * 501.3743 /1024 -273.6777;
+	int ADC_CODE = (*(int*)(xadc + 0x400)) >> 6;
+	//int data_celsius = ADC_CODE * 501.3743 /1024 -273.6777;
 
 	char buf[64];
 	char buf2[64];
@@ -100,7 +100,7 @@ err_t recv_callback(void *arg, struct tcp_pcb *tpcb,
 	}
 	// if no need to reset, assume it's always asking for temp
 	// This part needs to be expanded to accept other command
-	sprintf(buf, "%d", data_celsius);
+	sprintf(buf, "%d", ADC_CODE);
 
 	/* echo back the payload */
 	/* in this case, we assume that the payload is < TCP_SND_BUF */
