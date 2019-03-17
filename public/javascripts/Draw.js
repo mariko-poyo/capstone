@@ -10,7 +10,8 @@ var Global = {
     numGraphPoints: 10,
     activeTab: NaN,
     board_info: {},
-    configs: []
+    configs: [],
+    tracking: {}
 };
 
 var color = Chart.helpers.color;
@@ -41,24 +42,34 @@ window.onload = function() {
     var config = {
         type: 'bar',
         data: {
-            datasets: [{
-                label: ['Test data'],     // Board names update here
-                backgroundColor: color(window.chartColors.blue).alpha(0.8).rgbString(), 
-                borderColor: window.chartColors.blue,
-                hoverBackgroundColor: color(window.chartColors.blue).alpha(0.5).rgbString(),
-                hoverBorderColor: color(window.chartColors.blue).alpha(0.8).rgbString(),
-                borderWidth: 3,
-                fill: false,
-                data: [{
-                    y: 50
-                }],
-            }]
+            datasets: [
+            // {
+            //     label: ['Test data 1'],     // Board names update here
+            //     backgroundColor: color(window.chartColors.blue).alpha(0.8).rgbString(), 
+            //     borderColor: window.chartColors.blue,
+            //     hoverBackgroundColor: color(window.chartColors.blue).alpha(0.5).rgbString(),
+            //     hoverBorderColor: color(window.chartColors.blue).alpha(0.8).rgbString(),
+            //     borderWidth: 3,
+            //     fill: false,
+            //     data: [50]
+            // },{
+            //     label: ['Test data 2'],     // Board names update here
+            //     backgroundColor: color(window.chartColors.red).alpha(0.8).rgbString(), 
+            //     borderColor: window.chartColors.red,
+            //     hoverBackgroundColor: color(window.chartColors.red).alpha(0.5).rgbString(),
+            //     hoverBorderColor: color(window.chartColors.red).alpha(0.8).rgbString(),
+            //     borderWidth: 3,
+            //     fill: false,
+            //     data: [80]
+            // }
+            ],
+            // labels: [['Default'], ['test']]    // Board IDs update here ? TODO
+            
         },
         options: {
             scales: {
                 xAxes: [{
                     type: 'category',
-                    labels: ['Default'],    // Board IDs update here
                     display: true,
                     barPercentage: 0.5,
                     barThickness: 'flex',
@@ -78,7 +89,7 @@ window.onload = function() {
                             fontColor: '#FFFFFF'
                         }
                     },
-                    color: '#FFFFFF'
+                    color: '#FFFFFF',
                 }],
                 yAxes: [{
                     display: true,
@@ -98,7 +109,9 @@ window.onload = function() {
                     },
                     ticks: {
                         fontStyle: 'bold',
-                        fontColor: '#FFFFFF'
+                        fontColor: '#FFFFFF',
+                        min: 0,
+                        max: 120
                     },
                     color: '#FFFFFF',
                 }]
@@ -115,7 +128,7 @@ window.onload = function() {
 
     Global.configs[0] = config;
 	var ctx = document.getElementById('canvas').getContext('2d');
-    window.Chart114514 = new Chart(ctx, Global.configs[0]);
+    window.Chart0 = new Chart(ctx, Global.configs[0]);
 
     document.getElementById('submitMaxItem').addEventListener('click', function() {
         reading = document.getElementById("MaxItem").value;

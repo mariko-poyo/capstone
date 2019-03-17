@@ -121,6 +121,6 @@ commandServer.on('connection', function(){
 })
 
 commandServer.on('error', function(err){
-    console.log('\x1b[34mProcess\x1b[0m -> An error occured.'); // TODO: track client IP
+    console.log('\x1b[34mProcess\x1b[0m -> An error occured.'); 
     throw err;
 })

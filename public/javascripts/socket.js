@@ -1,8 +1,8 @@
-const socket = io('http://localhost:5556');
+const socket = io('http://localhost:5557');
 
 
 $(function (){
-    socket.on('update', function(data) {
+    socket.on('temperature update', function(data) {
 		console.log("Updating Canvas: " + Global.activeTab);
 
         var statusstring = 'online';
@@ -33,6 +33,18 @@ $(function (){
 	
 	socket.on('connect_error' , function(err){
 		console.log(err);
+	});
+	 
+	socket.on('dashboard update' , function(data){
+		console.log('Received package from dashboard update.')
+		console.log(data);
+		var index = 0;
+		for (var item in data) {
+			Global.configs[0].data.datasets[index].data = [data[item]];
+			index++;
+		}
+
+		window.Chart0.update();
 	}); 
 });
 
@@ -40,7 +52,10 @@ $(function (){
 //function to add monitoring board
 function addBoardFunc(){
 
-    var board_name = document.getElementById('selectBoard').value;
+	var board_name = document.getElementById('selectBoard').value;
+	
+	if (board_name in Global.tracking)
+		return;
 
 	var id = Global.board_info[board_name].ID;
 
@@ -130,11 +145,11 @@ function addBoardFunc(){
 		}
 	};
 
-	//add line for new board
+	// add line for new board
 	var string_to_add = '<tr>\n<td>'+ board_name+'</td>\n<td><span id="boardstatus'+ id+'">offline</span></td>\n<td><span id="temperatureval'+id+'">no data yet</span></td>';
     $('#monitoringtable').append(string_to_add);
 
-	//add new canvas for new board
+	// add new canvas for new board
 	var canvas_to_add = '\n<div id='+board_name+' class="tabcontent">\n<h3>'+board_name+'</h3><canvas class="chartjs-render-monitor" id="canvas'+ id +'" style="display: block; width: 862px; height: 431px;" width="862" height="431"></canvas>\n<br>\n<br>\n</div>';
 	var tab_to_add = '\n<button class="tablinks", onclick="openCanvas(event,\''+board_name+'\')">'+board_name+'</button>';
     $('#board_tabs').append(tab_to_add);
@@ -143,12 +158,34 @@ function addBoardFunc(){
 	var canvas_str = 'canvas' + id;
 	var ctx = document.getElementById(canvas_str).getContext('2d');
 	Global.configs[Global.board_info[board_name].ID] = config;
-    window['Chart' + id] = new Chart(ctx, Global.configs[Global.board_info[board_name].ID]);
+	window['Chart' + id] = new Chart(ctx, Global.configs[Global.board_info[board_name].ID]);
+	
+	// add new bar to dashboard
+	var index = Object.keys(Global.tracking).length % Object.keys(window.chartColors).length;
+	var col = window.chartColors[Object.keys(window.chartColors)[index]];
+	Global.tracking[board_name] = {ID: id};
+	console.log(Object.keys(window.chartColors)[index]);
+	Global.configs[0].data.datasets.push({
+		label: [board_name],     // Board names update here
+		backgroundColor: color(col).alpha(0.8).rgbString(), 
+		borderColor: col,
+		hoverBackgroundColor: color(col).alpha(0.5).rgbString(),
+		hoverBorderColor: color(col).alpha(0.8).rgbString(),
+		borderWidth: 3,
+		fill: false,
+		data: [0]
+	});
+	window.Chart0.update();
 }
 
 
 setInterval(function(){
+	// console.log(Global.tracking);
+	// console.log(Object.keys(Global.tracking).length);
     if (Global.activeTab && Global.activeTab !== "Overview") {
 		socket.emit('request', Global.board_info[Global.activeTab].ID);
-    }
+	} else if (Global.activeTab === "Overview" && Object.keys(Global.tracking).length) {
+		socket.emit('dashboard', Global.tracking);
+	}
+	
 },Global.updateInterval);
