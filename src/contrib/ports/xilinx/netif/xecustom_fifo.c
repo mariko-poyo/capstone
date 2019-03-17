@@ -188,8 +188,8 @@ XStatus init_axi_fifo(struct xemac_s *xemac)
 
 	/* initialize ll fifo */
 	XLlFifo_Initialize(&xecustom_fifo->axififo,
-			XPAR_MB_ETH_SYSTEM_AXI_FIFO_MM_S_0_BASEADDR);
-			//XPAR_AXI_FIFO_MM_S_0_BASEADDR); //0x44A00000U
+			XPAR_AXI_FIFO_0_BASEADDR);
+			//XPAR_SHELL_I_MB_ETH_SYSTEM_AXI_FIFO_MM_S_0_BASEADDR 0x44A00000U
 
 	/* Clear any pending FIFO interrupts */
 	XLlFifo_IntClear(&xecustom_fifo->axififo, XLLF_INT_ALL_MASK);
@@ -204,8 +204,8 @@ XStatus init_axi_fifo(struct xemac_s *xemac)
 
 	/* connect & enable FIFO interrupt */
 	XIntc_RegisterFastHandler(xtopologyp->intc_baseaddr,
-			XPAR_MB_ETH_SYSTEM_MICROBLAZE_0_AXI_INTC_MB_ETH_SYSTEM_AXI_FIFO_MM_S_0_INTERRUPT_INTR, //0U
-			//XPAR_MICROBLAZE_0_AXI_INTC_AXI_FIFO_MM_S_0_INTERRUPT_INTR, //4U
+			XPAR_INTC_0_LLFIFO_0_VEC_ID,
+			//XPAR_SHELL_I_MB_ETH_SYSTEM_MICROBLAZE_0_AXI_INTC_SHELL_I_MB_ETH_SYSTEM_AXI_FIFO_MM_S_0_INTERRUPT_INTR //0U
 			(XFastInterruptHandler)xllfifo_fastintr_handler);
 
 #endif
@@ -217,8 +217,8 @@ XStatus init_axi_fifo(struct xemac_s *xemac)
 		/* form new mask enabling SDMA & ll_temac interrupts */
 		cur_mask = cur_mask
 
-				| (1 << XPAR_MB_ETH_SYSTEM_MICROBLAZE_0_AXI_INTC_MB_ETH_SYSTEM_AXI_FIFO_MM_S_0_INTERRUPT_INTR);
-			//	| (1 << XPAR_MICROBLAZE_0_AXI_INTC_AXI_FIFO_MM_S_0_INTERRUPT_INTR);
+				| (1 << XPAR_INTC_0_LLFIFO_0_VEC_ID);
+			//	| (1 << XPAR_SHELL_I_MB_ETH_SYSTEM_MICROBLAZE_0_AXI_INTC_SHELL_I_MB_ETH_SYSTEM_AXI_FIFO_MM_S_0_INTERRUPT_INTR);
 
 		/* set new mask */
 		XIntc_EnableIntr(xtopologyp->intc_baseaddr, cur_mask);
