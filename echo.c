@@ -51,6 +51,24 @@ int transfer_data() {
 	return 0;
 }
 
+#define TEMP_REQ 0x34333231
+#define TEMP_RESP 2
+#define RESET_CMD 3
+#define RESET_ACK 4
+#define RESET_NACK 5
+#define THRESHOLD_SET 0x36333231
+#define THRESHOLD_ACK 0x7
+#define THRESHOLD_NACK 8
+#define READ_MEM 9
+#define READ_MEM_ACK 10
+#define READ_MEM_NACK 11
+#define WRITE_MEM 12
+#define WRITE_MEM_ACK 13
+#define WRITE_MEM_NACK 14
+#define INVALID_PT 15
+
+volatile char* SYSMON = (char *)XPAR_SYSMON_0_BASEADDR;
+
 void print_app_header()
 {
 #if (LWIP_IPV6==0)
@@ -74,38 +92,77 @@ err_t recv_callback(void *arg, struct tcp_pcb *tpcb,
 	/* indicate that the packet has been received */
 	tcp_recved(tpcb, p->len);
 
-	volatile char* xadc = (char *)XPAR_SYSMON_0_BASEADDR;
-	int ADC_CODE = (*(int*)(xadc + 0x400)) >> 6;
-	//int data_celsius = ADC_CODE * 501.3743 /1024 -273.6777;
+	u32 to_send[256];
+	u32 recv[256];
+	memcpy(recv, p->payload, p->len);
+	recv[p->len] ='\n';
+	u32 packet_type = recv[0];
+	int buflen = 4;
+	xil_printf("received length %d, %s\r\n", p->len, recv);
 
-	char buf[64];
-	char buf2[64];
-	memcpy(buf2, p->payload, p->len);
-	buf2[p->len] = '\0';
+	to_send[0] = INVALID_PT;
 
-	// for some reason, when I test with command "echo hello | nc <ip> <port>"
-	// the actual string being sent is hello\n. so the p->len would be 6.
-	xil_printf("received length %d, %s\r\n", p->len, buf2);
-	if(!strcmp(buf2, "reset\n")){
-		// send some form of reset ack
-		// in this case, we assume that the payload is < TCP_SND_BUF //
-		sprintf(buf, "%s", "resetting board\r\n");
-		if (tcp_sndbuf(tpcb) > strlen(buf)) {
-			err = tcp_write(tpcb, buf, strlen(buf), 1);
-		} else
-			xil_printf("no space in tcp_sndbuf\n\r");
-		// unfortunately, this ip is too fast and packet doesn't get sent out.
-		AUTO_RESET_10BITS_mWriteReg(reset_ip, 0x0, 1);
-
+	// In this switch, we only manipulate packet, the value will be sent at end of function
+	switch(packet_type){
+		case TEMP_REQ:
+			print("TEMP REQ");
+			int ADC_CODE = (*(int*)(SYSMON + 0x400)) >> 6;
+			to_send[0] = TEMP_RESP;
+			to_send[1] = ADC_CODE;
+			buflen += 4;
+			break;
+		case RESET_CMD:
+			print("RESET CMD");
+			AUTO_RESET_10BITS_mWriteReg(reset_ip, 0x0, 1);
+			// if the reset is successful, this packet should never be sent
+			to_send[0] = RESET_NACK;
+			break;
+		case THRESHOLD_SET:
+			print("Threshold set");
+			int threshold = recv[1];
+			xil_printf("receive threshold %x\r\n", threshold);
+			/* when you actually want to test the functionality
+			int temp_threshold = ceil((threshold + 273.6777) * 1024 / 501.3743);
+			AUTO_RESET_10BITS_mWriteReg(reset_ip, 0x4, (u32)temp_threshold);
+			AUTO_RESET_10BITS_mWriteReg(reset_ip, 0x8, 1);
+			*/
+			to_send[0] = THRESHOLD_ACK;
+			break;
+		case READ_MEM:
+			print("READ_MEM");
+			u32 read_addr = recv[2];
+			u32 read_length = recv[3];
+			xil_printf("read mem at 0x%08x, length %x\r\n", read_addr, read_length);
+			if(read_addr >= 0x90000000){
+				to_send[0] = READ_MEM_ACK;
+				memcpy(&to_send[1], (char*)read_addr, read_length);
+				buflen += read_length;
+			}
+			else{
+				to_send[0] = READ_MEM_NACK;
+			}
+			break;
+		case WRITE_MEM:
+			print("WRITE_MEM");
+			u32 write_addr =recv[2];
+			u32 write_length =recv[3];
+			xil_printf("write mem at 0x%08x, length %x\r\n", write_addr, write_length);
+			if(write_addr >= 0x90000000){
+				to_send[0] = WRITE_MEM_ACK;
+				memcpy((char*)write_addr, &recv[4], write_length);
+			}
+			else{
+				to_send[0] = WRITE_MEM_NACK;
+			}
+			break;
+		default:
+			to_send[0] = INVALID_PT;
 	}
-	// if no need to reset, assume it's always asking for temp
-	// This part needs to be expanded to accept other command
-	sprintf(buf, "%d", ADC_CODE);
 
 	/* echo back the payload */
 	/* in this case, we assume that the payload is < TCP_SND_BUF */
-	if (tcp_sndbuf(tpcb) > strlen(buf)) {
-		err = tcp_write(tpcb, buf, strlen(buf), 1);
+	if (tcp_sndbuf(tpcb) > buflen) {
+		err = tcp_write(tpcb, to_send, buflen, 1);
 	} else
 		xil_printf("no space in tcp_sndbuf\n\r");
 
