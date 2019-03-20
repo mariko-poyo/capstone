@@ -7,6 +7,7 @@ function newTimeString(seconds) {
 var Global = {
     warningCap: 950,
     updateInterval: 2000,
+    timer: undefined,
     numGraphPoints: 10,
     activeTab: NaN,
     board_info: {},
@@ -28,13 +29,13 @@ window.onload = function() {
         if (this.readyState == 4 && this.status == 200) {
             boards_data = JSON.parse(this.responseText);
             Global.board_info = boards_data;
-            console.log(Global.board_info.Default.ID);
+            // console.log(Global.board_info.Default.ID);
             var op_to_add = '';
             for(item in boards_data){
                 //set the config to the selection
                 op_to_add += '<br><option value="'+item+'">'+item+'</option>';
             } 
-            console.log(op_to_add);
+            // console.log(op_to_add);
             $('#selectBoard').append(op_to_add);
         }
     };
@@ -138,7 +139,20 @@ window.onload = function() {
     document.getElementById('submitInterval').addEventListener('click', function() {
         reading = document.getElementById("Interval").value;
         Global.updateInterval = (reading > 1000) ? reading : 1000;
-        socket.emit('interval update',{ interval: Global.updateInterval, boardID: Global.activeTab});
+
+        // update timer
+        if (Global.timer) {
+            clearInterval(Global.timer);
+            Global.timer = setInterval(function(){
+                if (Global.activeTab && Global.activeTab !== "Overview") {
+                    socket.emit('request', Global.board_info[Global.activeTab].ID);
+                } else if (Global.activeTab === "Overview" && Object.keys(Global.tracking).length) {
+                    socket.emit('dashboard', Global.tracking);
+                }
+            },Global.updateInterval);
+        } 
+
+        // socket.emit('interval update',{ interval: Global.updateInterval, boardID: Global.activeTab});
     });
 
     document.getElementById('submitWarningCap').addEventListener('click', function() {

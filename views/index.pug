@@ -16,15 +16,15 @@ block content
                     div #{title}
                         span Welcome to #{title}
             li 
-                a 
+                a(href='/')
                     div Dashboard
                         span Current status
             li 
-                a 
+                a(href='/history')
                     div History
                         span Command/Values
             li 
-                a 
+                a(href='mailto:GalapagosMonitor@gmail.com')
                     div Contact
                         span Administrator
         
@@ -61,6 +61,16 @@ block content
             input#WarningCap(type="int" value=100)
             br
             button#submitWarningCap Set Warning Cap
+            br
+            br
+            br
+            button#submitMemoryRead Read Memory 
+            br
+            p From Current Board At
+            input#MemoryAddress(type="string")
+            input#Byte(type="int" value=4)
+            p bytes.
+            br
             br
             br
 

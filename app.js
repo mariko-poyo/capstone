@@ -9,6 +9,10 @@ const fs = require('fs');
 
 const express = require('express');
 const app = express();
+const net = require('net');
+const commandProxy = new net.Socket();
+var DCAStatus = 0;
+
 
 const APP_PORT= 5557; //tmp -> change it to some other port if ELIFECYCLE error appears
 const server = app.listen(APP_PORT, (err)=> {
@@ -37,9 +41,28 @@ console.log(Boarddata);
 const moment = require('moment');
 const warningNotify = require('node-notifier');
 
+// Command Status Code
+const ONSUCCESS = 1;
+const ONFAILURE = 2;
+
+// Command  Opcode
+const BRD_RST = 1;
+const BRD_THR = 2;
+const BRD_MEM_R = 3;
+const BRD_MEM_W = 4;
+const DCA_ALRT_CAP = 5;
+
+
+
 // Setup http handler
 app.get('/getBoards',function(req,res){
-    console.log("receive http request");
+    console.log("Received http request: GetBoardInfo.");
+    res.send(Boarddata);
+    res.end();
+});
+
+app.get('/getHistory',function(req,res){
+    console.log("Receive http request: GetRecentHistory.");
     res.send(Boarddata);
     res.end();
 });
@@ -102,8 +125,20 @@ io.on('connection', function(socket){
                     db.close();
                     console.log("\x1b[34mio.connection:\x1b[0m Database disconnected.\n");
                 } else {
+                    if (result[0].temp >= 90) {
+                        console.log('Notifier triggered.');
+                        warningNotify.notify({
+                            title: 'Galapagos Monitor Temperature Warning:',
+                            message: 'Board '+ID+'\'s temperature has reached ' + result[0].temp.toString() + ' !',
+                            sound: true,
+                            wait: true
+                        },
+                        function (err, response) {
+                            // Response is response from notification
+                        });
+                    }
                     io.emit('temperature update', {id: ID, time: result[0].time, temperature: result[0].temp});
-                    console.log("\x1b[34mio.connection:\x1b[0m Result: time - " + result[0].time + ", temperature - " + result[0].temp + "sent.");
+                    console.log("\x1b[34mio.connection:\x1b[0m Result: time - " + result[0].time + ", temperature - " + result[0].temp + " sent.");
                     db.close();
                     console.log("\x1b[34mio.connection:\x1b[0m Database disconnected.\n");
                 }
@@ -137,7 +172,7 @@ io.on('connection', function(socket){
                         if (result.length == 0) {
                             // ret[item] = undefined;
                             ret[item] = 19;
-                            console.log("\x1b[33mDashboard Update:\x1b[0m Error: Database is empty for board ID:"+item.ID+".");
+                            console.log("\x1b[33mDashboard Update:\x1b[0m Error: Database is empty for board ID:"+id+".");
                         } else {
                             ret[item] = result[0].temp;
                             console.log("\x1b[33mDashboard Update:\x1b[0m Insert: " + "temperature - " + result[0].temp + " to ret.");
@@ -157,9 +192,17 @@ io.on('connection', function(socket){
 
             db.close();
             console.log("\x1b[33mDashboard Update:\x1b[0m Database disconnected.\n");
-            
         });
 
+    });
+
+    socket.on('reset', (name, ID) => {
+        console.log("\x1b[34mio.connection:\x1b[0m Reset command received from board "+ name + ': '+ ID);
+        if(DCAStatus) {
+            commandProxy.write(JSON.stringify({ opcode: BRD_RST, param1: name, param2: ID }));
+        } else {
+            io.emit('reset return', {name: name, ID: ID, status: ONFAILURE, err_msg: "DCA is offline."});
+        }
     });
 
     // This happens when broswer disconnet from server
@@ -168,24 +211,39 @@ io.on('connection', function(socket){
     });
 });
 
-let interval;
-//send random value all the time
-interval = setInterval(function() {
-    var temperature_tmp = 800;
-    if (temperature_tmp >= 900) {
-        console.log('Notifier triggered.');
-        warningNotify.notify({
-                title: 'Galapagos Monitor Temperature Warning:',
-                message: 'Board 0\'s temperature has reached ' + temperature_tmp.toString() + ' !',
-                sound: true,
-                wait: true
-            },
-            function (err, response) {
-                // Response is response from notification
-            });
+// Command Proxy
+commandProxy.on('connect', function(err){
+    console.log('\x1b[32mDCA:\x1b[0m Connection Setup.');
+    commandProxy.setEncoding("utf8");
+    DCAStatus = 1;
+});
+
+commandProxy.on('error',(res) =>{
+    console.log('\x1b[31mDCA:\x1b[0m Error on DCA connection: ' + res.address + '/' + res.port + '. Error Code: ' + res.code);
+});
+
+commandProxy.on('close', () => {
+    console.log('\x1b[31mDCA:\x1b[0m -> DCA is disconneted.');
+    DCAStatus = 0;
+});
+
+commandProxy.on('data', (data) => {
+    console.log('\x1b[31mDCA:\x1b[0m -> DCA sent data packet: ' + data);
+    var packet = JSON.parse(data);
+    if (packet.opcode === BRD_RST) {
+        if (packet.return === ONSUCCESS) {
+            io.emit('reset return', {name: packet.name, ID: packet.id, status: ONSUCCESS});
+        } else {
+            io.emit('reset return', {name: packet.name, ID: packet.id, status: ONFAILURE, err_msg: packet.err_msg});
+        }
     }
     
+});
 
-}, updateInterval);
+setInterval(() => {
+    if(!DCAStatus){
+        commandProxy.connect(8013, '127.0.0.1');
+    }
+}, 15000);
 
 module.exports = app;

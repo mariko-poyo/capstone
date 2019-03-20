@@ -1,5 +1,8 @@
 const socket = io('http://localhost:5557');
 
+// Command Status Code
+const ONSUCCESS = 1;
+const ONFAILURE = 2;
 
 $(function (){
     socket.on('temperature update', function(data) {
@@ -35,6 +38,14 @@ $(function (){
 		console.log(err);
 	});
 	 
+	socket.on('reset return' , function(packet){
+		if(packet.status === ONSUCCESS) {
+			alert("Board "+ packet.name+" has been reset successfully.", );
+		} else {
+			alert("Board "+ packet.name+" failed to reset: " + packet.err_msg, );
+		}
+	});
+
 	socket.on('dashboard update' , function(data){
 		console.log('Received package from dashboard update.')
 		console.log(data);
@@ -68,6 +79,10 @@ function addBoardFunc(){
 				label: 'Dataset 1',
 				backgroundColor: color(window.chartColors.blue).alpha(0.5).rgbString(), //set color to random??
 				borderColor: window.chartColors.blue,
+				pointRadius: 5,
+				pointHitRadius: 10,
+				pointBackgroundColor: 'rgb(150, 180, 235)',
+				pointBorderColor: 'rgb(150, 180, 235)',
 				fill: false,
 				data: [{}],
 			}]
@@ -102,7 +117,9 @@ function addBoardFunc(){
 					ticks: {
 						major: {
 							fontStyle: 'bold',
-							fontColor: '#FFFFFF'
+							fontColor: '#FFFFFF',
+							suggestedMin: newTimeString(-10),
+                    		suggestedMax: newTimeString(5)
 						},
 						
 					},
@@ -150,10 +167,18 @@ function addBoardFunc(){
     $('#monitoringtable').append(string_to_add);
 
 	// add new canvas for new board
-	var canvas_to_add = '\n<div id='+board_name+' class="tabcontent">\n<h3>'+board_name+'</h3><canvas class="chartjs-render-monitor" id="canvas'+ id +'" style="display: block; width: 862px; height: 431px;" width="862" height="431"></canvas>\n<br>\n<br>\n</div>';
+	var canvas_to_add = '\n<div id='
+		+board_name
+		+' class="tabcontent">\n<h3>'
+		+board_name+'</h3><button type="button" onclick="resetBoard(\''
+		+board_name
+		+'\')">Reset this board</button>\n<br>\n<canvas class="chartjs-render-monitor" id="canvas'
+		+ id 
+		+'" style="display: block; width: 862px; height: 431px;" width="862" height="431"></canvas>\n<br>\n<br>\n</div>';
 	var tab_to_add = '\n<button class="tablinks", onclick="openCanvas(event,\''+board_name+'\')">'+board_name+'</button>';
     $('#board_tabs').append(tab_to_add);
 	$('#tab_contents').append(canvas_to_add);
+	console.log(canvas_to_add);
 	
 	var canvas_str = 'canvas' + id;
 	var ctx = document.getElementById(canvas_str).getContext('2d');
@@ -178,14 +203,27 @@ function addBoardFunc(){
 	window.Chart0.update();
 }
 
+socket.on('connect', () => {
+	Global.timer = setInterval(function(){
+		// console.log(Global.tracking);
+		// console.log(Object.keys(Global.tracking).length);
+		if (Global.activeTab && Global.activeTab !== "Overview") {
+			socket.emit('request', Global.board_info[Global.activeTab].ID);
+		} else if (Global.activeTab === "Overview" && Object.keys(Global.tracking).length) {
+			socket.emit('dashboard', Global.tracking);
+		}
+		
+	},Global.updateInterval);
+});
 
-setInterval(function(){
-	// console.log(Global.tracking);
-	// console.log(Object.keys(Global.tracking).length);
-    if (Global.activeTab && Global.activeTab !== "Overview") {
-		socket.emit('request', Global.board_info[Global.activeTab].ID);
-	} else if (Global.activeTab === "Overview" && Object.keys(Global.tracking).length) {
-		socket.emit('dashboard', Global.tracking);
+socket.on('disconnect', (reason) => {
+	if (reason === 'io server disconnect') {
+		// the disconnection was initiated by the server, need to reconnect manually
+		socket.connect();
 	}
-	
-},Global.updateInterval);
+	clearInterval(Global.timer);
+});
+
+function resetBoard(name){
+	socket.emit('reset', name, Global.board_info[name].ID);
+}
