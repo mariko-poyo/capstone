@@ -51,13 +51,13 @@ int transfer_data() {
 	return 0;
 }
 
-#define TEMP_REQ 0x34333231
+#define TEMP_REQ 1
 #define TEMP_RESP 2
 #define RESET_CMD 3
 #define RESET_ACK 4
 #define RESET_NACK 5
-#define THRESHOLD_SET 0x36333231
-#define THRESHOLD_ACK 0x7
+#define THRESHOLD_SET 6
+#define THRESHOLD_ACK 7
 #define THRESHOLD_NACK 8
 #define READ_MEM 9
 #define READ_MEM_ACK 10
@@ -92,33 +92,31 @@ err_t recv_callback(void *arg, struct tcp_pcb *tpcb,
 	/* indicate that the packet has been received */
 	tcp_recved(tpcb, p->len);
 
-	u32 to_send[256];
-	u32 recv[256];
+	u32 to_send[256] = {0};
+	u32 recv[256] = {0};
 	memcpy(recv, p->payload, p->len);
 	recv[p->len] ='\n';
 	u32 packet_type = recv[0];
-	int buflen = 4;
-	xil_printf("received length %d, %s\r\n", p->len, recv);
-
-	to_send[0] = INVALID_PT;
-
+	int to_send_len = 4;
+    
 	// In this switch, we only manipulate packet, the value will be sent at end of function
 	switch(packet_type){
 		case TEMP_REQ:
-			print("TEMP REQ");
+			print("TEMP REQ\r\n");
 			int ADC_CODE = (*(int*)(SYSMON + 0x400)) >> 6;
 			to_send[0] = TEMP_RESP;
 			to_send[1] = ADC_CODE;
-			buflen += 4;
+			to_send_len += 4;
 			break;
 		case RESET_CMD:
-			print("RESET CMD");
+			print("RESET CMD\r\n");
 			AUTO_RESET_10BITS_mWriteReg(reset_ip, 0x0, 1);
 			// if the reset is successful, this packet should never be sent
+			print("RESET FAILED, board comes alive\r\n");
 			to_send[0] = RESET_NACK;
 			break;
 		case THRESHOLD_SET:
-			print("Threshold set");
+			print("Threshold set\r\n");
 			int threshold = recv[1];
 			xil_printf("receive threshold %x\r\n", threshold);
 			/* when you actually want to test the functionality
@@ -129,29 +127,31 @@ err_t recv_callback(void *arg, struct tcp_pcb *tpcb,
 			to_send[0] = THRESHOLD_ACK;
 			break;
 		case READ_MEM:
-			print("READ_MEM");
-			u32 read_addr = recv[2];
-			u32 read_length = recv[3];
+			print("READ_MEM\r\n");
+			u32 read_addr = recv[1];
+			u32 read_length = recv[2];
 			xil_printf("read mem at 0x%08x, length %x\r\n", read_addr, read_length);
 			if(read_addr >= 0x90000000){
 				to_send[0] = READ_MEM_ACK;
-				memcpy(&to_send[1], (char*)read_addr, read_length);
-				buflen += read_length;
+				memcpy((char*)&to_send[1], (char*)read_addr, read_length);
+				to_send_len += read_length;
 			}
 			else{
 				to_send[0] = READ_MEM_NACK;
 			}
 			break;
 		case WRITE_MEM:
-			print("WRITE_MEM");
-			u32 write_addr =recv[2];
-			u32 write_length =recv[3];
+			print("WRITE_MEM\r\n");
+			u32 write_addr =recv[1];
+			u32 write_length =recv[2];
 			xil_printf("write mem at 0x%08x, length %x\r\n", write_addr, write_length);
 			if(write_addr >= 0x90000000){
 				to_send[0] = WRITE_MEM_ACK;
-				memcpy((char*)write_addr, &recv[4], write_length);
+				print("ACK");
+				memcpy((char*)write_addr, &recv[3], write_length);
 			}
 			else{
+				print("NACK");
 				to_send[0] = WRITE_MEM_NACK;
 			}
 			break;
@@ -161,8 +161,8 @@ err_t recv_callback(void *arg, struct tcp_pcb *tpcb,
 
 	/* echo back the payload */
 	/* in this case, we assume that the payload is < TCP_SND_BUF */
-	if (tcp_sndbuf(tpcb) > buflen) {
-		err = tcp_write(tpcb, to_send, buflen, 1);
+	if (tcp_sndbuf(tpcb) > to_send_len) {
+		err = tcp_write(tpcb, to_send, to_send_len, 1);
 	} else
 		xil_printf("no space in tcp_sndbuf\n\r");
 
