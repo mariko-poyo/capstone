@@ -4,34 +4,47 @@ Monitor application for tracing client board status under Galapagos.
 Updating...
 
 **Last Commit:**
-* Prepare to change inter_client to use a fsm to intepret message from server(app.js)
+* Updated Overview tab, fixed several bugs, removed useless code.
+* Fixed Notifier in app.js
+* Rewrote p_process logic
+* Improved chart performance
+* Designed part of protocol logic. Prepare for future integration.
+
+**Current Commit:**
+* Completed most part of protocal handling
+* Revised sim_board interface to fit in new protocol
+* Updated setInterval logic in frontend and socket.io logic. Now client will do less polling while server is offline.
+* P_process is renamed to DCA. Add reconnect routine for offline boards, and implement interface for multi-board proxy dict.
+* Implement reset and memory reading interface to frontend. Need to improve further.
+* Board_data.json updated.
+* Navigation bar is working now.
 
 **TODO:**
-* ~~Find a proper way for showing multiple charts at same time~~
-* ~~Use socket.io to perform realtime update.~~
-* Interaction Buttons **(more!)**
-* ~~Chart list~~
-* ~~Warning messages~~
-* Dashboard
-* ~~Set default value of points of graph~~ 
-* ~~Show real temperature instead of random number~~
-* ADD 10.1.2.166 port 7 to P1
+* Finish protocol for setThreshold.
+* Memory operation interface on frontend.
+* Complete command log logic.
+* History page design.
+* Remove tracking board button in control panel.
+* Simplify current terminal output.
+* Interaction Buttons **(more!)** .
 
 #### Opened Issues:
-* The graph will resize it's axis to just fit for existing data and looks really bad.
-* implement an fsm for inter_client to handle messages from app.js
-* the way we store config is that we always push a new config at end of configs array(in Draw.js). However, when we index them, we use
-  the actual board index (in socket.js line15). Need to modify the way config gets stored in configs array. (haiqi)
+* Cannot edit properties of x-axies ticks. Need to reformat time, limit range for first 10 values, and larger font size.
+* CSS looks really bad for less resolution web page. 
+* Wish to enable cookies to save tracking list. Should be pretty easy, but low priority.
+
 
 
 #### Note:
-* if ELIFECYCLE error appears on "npm start", it means someone else is using those ports. So modify APP_PORT in
+* If ELIFECYCLE error appears on "npm start", it means someone else is using those ports. So modify APP_PORT in
 app.js and default 3000 port in ./bin/www to some other ports and the problem should be resolved.
+* Now sim_board receives 2 params in commandline. [host, port] `No default value`. 
+* Port polling in DCA is turned off at current stage for debugging. So make sure sim_board or real board is online before DCA running.
 
 **Setup**
 ``` bash
-   npm install    // Install all modules in package.json
-   npm start      // Run server
-   npm p_process  // Run p_process
-   npm sim        // Run board simulator
+   npm install                      // Install all modules in package.json
+   npm start                        // Run server
+   npm run DCA                      // Run DCA
+   npm run sim --host --port        // Run board simulator
 ```
