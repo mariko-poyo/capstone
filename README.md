@@ -24,9 +24,11 @@ Updating...
 * Memory operation interface on frontend.
 * Complete command log logic.
 * History page design.
+* Time chart and dashboard should handle offline events.
+* Implement more error checking.
 * Remove tracking board button in control panel.
 * Simplify current terminal output.
-* Interaction Buttons **(more!)** .
+* **Improve CSS**
 
 #### Opened Issues:
 * Cannot edit properties of x-axies ticks. Need to reformat time, limit range for first 10 values, and larger font size.

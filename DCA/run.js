@@ -162,10 +162,10 @@ proxy["Real_board"].connect(7, '10.1.2.180', function(){
 
     
     const buffer1 = Buffer.from('0c0000000010009004000000efbeadde','hex'); // Write mem to 0x90001000, 0xdeadbeef
-    const buffer2 = Buffer.from('090000000030009004000000','hex');  // Read from 0x90003000
-
     // const buffer1 = Buffer.from('0c000000 003000900400000078563412','hex'); // Write mem to 0x90003000, 0x12345678
     // const buffer2 = Buffer.from('0c000000 003000400400000078563412','hex'); // Write mem to 0x40003000, 0x12345678
+    const buffer2 = Buffer.from('090000000030009004000000','hex');  // Read from 0x90003000
+
     // console.log("\x1b[34mProcess\x1b[0m -> Packet sent:");
     // console.log(buffer1);
     // console.log("\x1b[34mProcess\x1b[0m -> Packet sent:");
