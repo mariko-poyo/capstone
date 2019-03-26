@@ -1,3 +1,4 @@
+// Const
 const createError = require('http-errors');
 const path = require('path');
 const cookieParser = require('cookie-parser');
@@ -24,9 +25,6 @@ const server = app.listen(APP_PORT, (err)=> {
 // socket.io setup
 
 var io = require('socket.io').listen(server);
-
-// database access interval
-var updateInterval = 1000;
 
 // MongoDB setup
 
@@ -202,6 +200,15 @@ io.on('connection', function(socket){
             commandProxy.write(JSON.stringify({ opcode: BRD_RST, param1: name, param2: ID }));
         } else {
             io.emit('reset return', {name: name, ID: ID, status: ONFAILURE, err_msg: "DCA is offline."});
+        }
+    });
+
+    socket.on('mem_read', (name, ID, addr, byte) => {
+        console.log("\x1b[34mio.connection:\x1b[0m Memory read command received from board " + name + ": " + ID + " for " + byte + " at " + addr);
+        if (DCAStatus) {
+            commandProxy.write(JSON.stringify({ opcode: BRD_MEM_R, param1: name, param2: ID , param3: addr, param4: byte}));
+        } else {
+            io.emit('mem_read return', { name: name, ID: ID, status: ONFAILURE, err_msg: "DCA is offline." });
         }
     });
 

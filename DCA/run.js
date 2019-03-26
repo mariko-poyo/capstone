@@ -79,168 +79,7 @@ const mailOptions = {
     html: '<p>Your board is burning!</p>'// plain text body
 };
 
-/* TODO: Will use shortly*/
-
-
 // =============================== Setup End ==================================
-
-// Temperature Proxy
-
-// TODO: Hard coding at this moment. Need to be updated to follow board_data.json
-// After having valid list, use for loop here.
-// proxy["Simulated"].connect(9527, '127.0.0.1', function(){
-//     if (err) {
-//         failedList["Simulated"] = proxy["Simulated"];
-//         return;
-//     }   
-//     console.log('Connection Setup.');
-//     proxy["Simulated"].setEncoding("utf8");
-//     proxy["Simulated"].write('Ready');
-// })
-
-// proxy["Simulated"].on('error',function(res){
-//     console.log('\x1b[34mProcess\x1b[0m -> Connection on ' + res.address + '/' + res.port + ' failed.')
-//     console.log('\x1b[34mProcess\x1b[0m -> Code: ' + res.code);
-// });
-
-// proxy["Simulated"].on('data', function(data) {
-//     console.log('\x1b[34mProcess\x1b[0m -> Data Received: ' + data);
-//     // Connect Database
-//     MongoClient.connect(url, { useNewUrlParser: true }, function(err, db){
-//         console.log("\x1b[34mProcess\x1b[0m -> Database connected.");
-
-//         var temperature = db.db("temperature");
-
-//         var timeStamp = moment().format("MMM Do YY, h:mm:ss a");
-//         var obj = { temp: parseFloat(data), time: timeStamp };
-
-//         temperature.collection("114514").insertOne(obj, function(err, res) {
-//             if (err) throw err;
-//             // console.log(res);
-//             console.log("\x1b[34mProcess\x1b[0m -> Record: temp: "+obj.temp+" time: "+obj.time+" has added to database.");
-//         });
-
-//         // If overheated, trigger alert mail. (TODO: How to define threshold value here? At last structure diagram p_process should not talk to web server.)
-//         if (parseFloat(data) >= 100) {
-//             transporter.sendMail(mailOptions, function (err, info) {
-//                 if(err)
-//                     console.log(err) ;
-//                 else
-//                     console.log(info);
-//             });
-//             console.log('\x1b[34mProcess\x1b[0m -> Alert email sent. Temperature at the moment is' + data);
-//         }
-        
-//         db.close();
-//         console.log("\x1b[34mProcess\x1b[0m -> Database disconnected.");
-//     });
-// });
-
-// proxy["Simulated"].on('close', function() {
-//     console.log('\x1b[34mProcess\x1b[0m -> Target connection has closed.');
-//     proxy["Simulated"].end();
-// });
-
-
-// ====================== board test ==========================
-
-proxy["Real_board"].connect(7, '10.1.2.180', function(){
-    // if (err) failedList.push(Boarddata[item]);
-    console.log('Connection Setup.');
-    const buffer = Buffer.from('01000000','hex');
-    // const testBuffer = Buffer.from('0200000096020000','hex');
-    const testBuffer = Buffer.alloc(12);
-    testBuffer.writeUInt32LE("0x9",0)
-    testBuffer.writeUInt32LE("0x90003000",4);
-    testBuffer.writeUInt32LE(12,8);
-    // var command = '09';
-    // var buffer = Buffer.
-    console.log(testBuffer[0]);
-    var temp = Buffer.from(testBuffer.toString('hex',4,8));
-    console.log(testBuffer);
-    proxy["Real_board"].write(testBuffer);
-
-    
-    const buffer1 = Buffer.from('0c0000000010009004000000efbeadde','hex'); // Write mem to 0x90001000, 0xdeadbeef
-    // const buffer1 = Buffer.from('0c000000 003000900400000078563412','hex'); // Write mem to 0x90003000, 0x12345678
-    // const buffer2 = Buffer.from('0c000000 003000400400000078563412','hex'); // Write mem to 0x40003000, 0x12345678
-    const buffer2 = Buffer.from('090000000030009004000000','hex');  // Read from 0x90003000
-
-    // console.log("\x1b[34mProcess\x1b[0m -> Packet sent:");
-    // console.log(buffer1);
-    // console.log("\x1b[34mProcess\x1b[0m -> Packet sent:");
-    // console.log(buffer2);
-    // proxy["Real_board"].write(buffer1);
-    // proxy["Real_board"].write(buffer2);
-    
-    // setInterval(() => {
-    //     proxy["Real_board"].write(buffer);
-    // }, 1000);
-})
-
-
-proxy["Real_board"].on('close', function() {
-    console.log('\x1b[34mProcess\x1b[0m -> Target 10.1.2.166 connection has closed.');
-    proxy.end();
-});
-
-proxy["Real_board"].on('data', function(data) {
-    console.log('\x1b[34mProcess\x1b[0m -> From 10.1.2.166: data received.');
-    var buffer = Buffer.from(data);
-    console.log(buffer);
-
-    if (buffer[0] == RESP_TEMP){
-        // console.log(buffer.readInt32LE(4));
-        var converted_temp = buffer.readInt32LE(4) * 501.3743 / 1024 - 273.6777;
-        console.log('\x1b[34mProcess\x1b[0m -> From 10.1.2.166: Temperature received ' + converted_temp);
-        var timeStamp = moment().format("MMM Do YY, h:mm:ss a");
-        var obj = { temp: converted_temp, time: timeStamp };
-        
-    }
-
-    if (buffer[0] == MEM_R_ACK){
-        // int32 has 4 byte alignment. Check first.
-        var payload_len = buffer.length - 4;
-        
-        console.log('\x1b[34mProcess\x1b[0m -> From 10.1.2.166: Memory reading packet received. Length: ' + payload_len);
-
-        var payload_len_tail = payload_len % 4;
-        // var payload_len_aligned = payload_len - payload_len_tail;
-        if (payload_len_tail) {
-            console.log('\x1b[34mProcess\x1b[0m -> From 10.1.2.166: \x1b[31mERROR!\x1b[0m Payload is unaligned.');
-            return;
-        }
-
-        var i;
-        var payload = '';
-        for (i = 0; i < payload_len; i+= 4) {
-            payload += buffer.readUInt32LE(4+i).toString(16);
-            payload += ' ';
-        }
-
-        // LOL: unalignment makes no sense for little endian. We need to check input, but not handle unalignment.
-        // Keep these codes just in case.
-
-        // if (payload_len_tail) {
-        //     switch(payload_len_tail) {
-        //         case 1: 
-        //             payload += buffer.readUInt8(payload_len_aligned + 4).toString(16);
-        //             break;
-                
-        //         case 2: 
-        //             payload += buffer.readUInt16LE(payload_len_aligned + 4).toString(16);
-        //             break;
-
-        //         case 3:
-        //             payload += buffer.readUInt32LE(payload_len_aligned + 4).toString(16);
-        //             break;
-        //     }
-        // }
-        // console.log(payload);
-        console.log('\x1b[34mProcess\x1b[0m -> From 10.1.2.166: Memory payload received ' + payload);
-    }
-});
-
 
 // proxy and db setup
 BoardNames.forEach(function(board){
@@ -353,6 +192,11 @@ BoardNames.forEach(function(board){
     // DB check
 
     MongoClient.connect(db_url, { useNewUrlParser: true }, async function(err, db){
+        if (err) {
+            console.log(err);
+            console.log("\x1b[31mDatabase Error:\x1b[0m -> Database is offline.");
+            return;
+        }
         console.log("\x1b[35mDCA Setup\x1b[0m -> Database connected.");
 
         var temperature = db.db("temperature");
@@ -461,3 +305,165 @@ const commandServer = net.createServer(function(socket){
 });
 
 commandServer.listen(8013, '127.0.0.1');
+
+
+
+
+// 
+
+// Temperature Proxy
+
+// TODO: Hard coding at this moment. Need to be updated to follow board_data.json
+// After having valid list, use for loop here.
+// proxy["Simulated"].connect(9527, '127.0.0.1', function(){
+//     if (err) {
+//         failedList["Simulated"] = proxy["Simulated"];
+//         return;
+//     }   
+//     console.log('Connection Setup.');
+//     proxy["Simulated"].setEncoding("utf8");
+//     proxy["Simulated"].write('Ready');
+// })
+
+// proxy["Simulated"].on('error',function(res){
+//     console.log('\x1b[34mProcess\x1b[0m -> Connection on ' + res.address + '/' + res.port + ' failed.')
+//     console.log('\x1b[34mProcess\x1b[0m -> Code: ' + res.code);
+// });
+
+// proxy["Simulated"].on('data', function(data) {
+//     console.log('\x1b[34mProcess\x1b[0m -> Data Received: ' + data);
+//     // Connect Database
+//     MongoClient.connect(url, { useNewUrlParser: true }, function(err, db){
+//         console.log("\x1b[34mProcess\x1b[0m -> Database connected.");
+
+//         var temperature = db.db("temperature");
+
+//         var timeStamp = moment().format("MMM Do YY, h:mm:ss a");
+//         var obj = { temp: parseFloat(data), time: timeStamp };
+
+//         temperature.collection("114514").insertOne(obj, function(err, res) {
+//             if (err) throw err;
+//             // console.log(res);
+//             console.log("\x1b[34mProcess\x1b[0m -> Record: temp: "+obj.temp+" time: "+obj.time+" has added to database.");
+//         });
+
+//         // If overheated, trigger alert mail. (TODO: How to define threshold value here? At last structure diagram p_process should not talk to web server.)
+//         if (parseFloat(data) >= 100) {
+//             transporter.sendMail(mailOptions, function (err, info) {
+//                 if(err)
+//                     console.log(err) ;
+//                 else
+//                     console.log(info);
+//             });
+//             console.log('\x1b[34mProcess\x1b[0m -> Alert email sent. Temperature at the moment is' + data);
+//         }
+
+//         db.close();
+//         console.log("\x1b[34mProcess\x1b[0m -> Database disconnected.");
+//     });
+// });
+
+// proxy["Simulated"].on('close', function() {
+//     console.log('\x1b[34mProcess\x1b[0m -> Target connection has closed.');
+//     proxy["Simulated"].end();
+// });
+
+
+// ====================== board test ==========================
+
+// proxy["Real_board"].connect(7, '10.1.2.180', function(){
+//     // if (err) failedList.push(Boarddata[item]);
+//     console.log('Connection Setup.');
+//     const buffer = Buffer.from('01000000','hex');
+//     // const testBuffer = Buffer.from('0200000096020000','hex');
+//     const testBuffer = Buffer.alloc(12);
+//     testBuffer.writeUInt32LE("0x9",0)
+//     testBuffer.writeUInt32LE("0x90003000",4);
+//     testBuffer.writeUInt32LE(12,8);
+//     // var command = '09';
+//     // var buffer = Buffer.
+//     console.log(testBuffer[0]);
+//     var temp = Buffer.from(testBuffer.toString('hex',4,8));
+//     console.log(testBuffer);
+//     proxy["Real_board"].write(testBuffer);
+
+
+//     const buffer1 = Buffer.from('0c0000000010009004000000efbeadde','hex'); // Write mem to 0x90001000, 0xdeadbeef
+//     // const buffer1 = Buffer.from('0c000000 003000900400000078563412','hex'); // Write mem to 0x90003000, 0x12345678
+//     // const buffer2 = Buffer.from('0c000000 003000400400000078563412','hex'); // Write mem to 0x40003000, 0x12345678
+//     const buffer2 = Buffer.from('090000000030009004000000','hex');  // Read from 0x90003000
+
+//     // console.log("\x1b[34mProcess\x1b[0m -> Packet sent:");
+//     // console.log(buffer1);
+//     // console.log("\x1b[34mProcess\x1b[0m -> Packet sent:");
+//     // console.log(buffer2);
+//     // proxy["Real_board"].write(buffer1);
+//     // proxy["Real_board"].write(buffer2);
+
+//     // setInterval(() => {
+//     //     proxy["Real_board"].write(buffer);
+//     // }, 1000);
+// })
+
+
+// proxy["Real_board"].on('close', function() {
+//     console.log('\x1b[34mProcess\x1b[0m -> Target 10.1.2.166 connection has closed.');
+//     proxy.end();
+// });
+
+// proxy["Real_board"].on('data', function(data) {
+//     console.log('\x1b[34mProcess\x1b[0m -> From 10.1.2.166: data received.');
+//     var buffer = Buffer.from(data);
+//     console.log(buffer);
+
+//     if (buffer[0] == RESP_TEMP){
+//         // console.log(buffer.readInt32LE(4));
+//         var converted_temp = buffer.readInt32LE(4) * 501.3743 / 1024 - 273.6777;
+//         console.log('\x1b[34mProcess\x1b[0m -> From 10.1.2.166: Temperature received ' + converted_temp);
+//         var timeStamp = moment().format("MMM Do YY, h:mm:ss a");
+//         var obj = { temp: converted_temp, time: timeStamp };
+
+//     }
+
+//     if (buffer[0] == MEM_R_ACK){
+//         // int32 has 4 byte alignment. Check first.
+//         var payload_len = buffer.length - 4;
+
+//         console.log('\x1b[34mProcess\x1b[0m -> From 10.1.2.166: Memory reading packet received. Length: ' + payload_len);
+
+//         var payload_len_tail = payload_len % 4;
+//         // var payload_len_aligned = payload_len - payload_len_tail;
+//         if (payload_len_tail) {
+//             console.log('\x1b[34mProcess\x1b[0m -> From 10.1.2.166: \x1b[31mERROR!\x1b[0m Payload is unaligned.');
+//             return;
+//         }
+
+//         var i;
+//         var payload = '';
+//         for (i = 0; i < payload_len; i+= 4) {
+//             payload += buffer.readUInt32LE(4+i).toString(16);
+//             payload += ' ';
+//         }
+
+//         // LOL: unalignment makes no sense for little endian. We need to check input, but not handle unalignment.
+//         // Keep these codes just in case.
+
+//         // if (payload_len_tail) {
+//         //     switch(payload_len_tail) {
+//         //         case 1: 
+//         //             payload += buffer.readUInt8(payload_len_aligned + 4).toString(16);
+//         //             break;
+
+//         //         case 2: 
+//         //             payload += buffer.readUInt16LE(payload_len_aligned + 4).toString(16);
+//         //             break;
+
+//         //         case 3:
+//         //             payload += buffer.readUInt32LE(payload_len_aligned + 4).toString(16);
+//         //             break;
+//         //     }
+//         // }
+//         // console.log(payload);
+//         console.log('\x1b[34mProcess\x1b[0m -> From 10.1.2.166: Memory payload received ' + payload);
+//     }
+// });
