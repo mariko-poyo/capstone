@@ -58,19 +58,31 @@ block content
             button#submitInterval Set Interval (ms)
             p MIN Interval: 1000
             br
-            input#WarningCap(type="int" value=100)
+            input#WarningCap(type="int" value=75)
             br
             button#submitWarningCap Set Warning Cap
             br
+            input#Threshold(type="int" value=90)
+            br
+            button#submitThreshold(type="button",onclick='setThreshold()') Set Reset Threshold
             br
             br
-            button#submitMemoryRead Read Memory 
             br
-            p From Current Board At
-            input#MemoryAddress(type="string")
+            button#submitMemoryRead(type="button",onclick='memRead()') Read Memory
+            button#submitMemoryWrite(type="button",onclick='memWrite()') Write Memory
+            br
+            lable Address
+            br
+            input#MemoryAddress(type="string" value="0x90000000" )
+            br 
+            lable Byte  
+            br
             input#Byte(type="int" value=4)
-            p bytes.
             br
+            lable Value  
+            br
+            input#Value(type="string" value="0")
+            h4#MemoryReturn
             br
             br
 

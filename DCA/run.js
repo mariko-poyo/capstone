@@ -6,7 +6,7 @@ var Boarddata = JSON.parse(fs.readFileSync('board_data.json', 'utf8'));
 var BoardNames = [];
 for (item in Boarddata) {
     BoardNames.push(item);
-} // Used for proxy setup. AddEventListener will skew up if using for .. in, thus we have to use forEach.
+} // Used for proxy setup. AddEventListener will be skewed up if using for .. in since function is async, thus we have to use forEach.
 
 // Socket Setup
 const net = require('net');
@@ -22,12 +22,12 @@ var proxy = {};
 var timer = {};
 
 // proxy["Simulated"] = new net.Socket();   // localhost 9527
-proxy["Real_board"] = new net.Socket();   // 10.1.2.180 - 7
-Boarddata["Real_board"] = {
-    "ID": 360008,
-    "IP": "10.1.2.180", 
-    "port": "7"
-};
+// proxy["Real_board"] = new net.Socket();   // 10.1.2.180 - 7
+// Boarddata["Real_board"] = {
+//     "ID": 360008,
+//     "IP": "10.1.2.180", 
+//     "port": "7"
+// };
 
 var unconnected = {};
 
@@ -79,6 +79,13 @@ const mailOptions = {
     html: '<p>Your board is burning!</p>'// plain text body
 };
 
+
+
+// ================================ temp =====================================
+
+var temp_global_socket;
+
+
 // =============================== Setup End ==================================
 
 // proxy and db setup
@@ -101,7 +108,7 @@ BoardNames.forEach(function(board){
 
         timer[board] = setInterval(() => {
             const buffer = Buffer.alloc(4);
-            buffer.writeUInt32LE(1,0)
+            buffer.writeUInt32LE(REQ_TEMP,0)
             proxy[board].write(buffer);
         }, 1000);
 
@@ -128,25 +135,36 @@ BoardNames.forEach(function(board){
     });
 
     proxy[board].on('data', (data) => {
-        console.log('\x1b[32mProxy Packet\x1b[0m -> From board '+ board +': data received.');
+        console.log('\x1b[32mProxy Packet\x1b[0m -> From board %s: data received.', board);
         var buffer = Buffer.from(data);
     
         if (buffer[0] == RESP_TEMP){
             // console.log(buffer.readInt32LE(4));
             var converted_temp = buffer.readInt32LE(4) * 501.3743 / 1024 - 273.6777;
-            console.log('\x1b[32mProxy Packet\x1b[0m -> From board '+ board +': Temperature received ' + converted_temp);
+            console.log('\x1b[32mProxy Packet\x1b[0m -> From board %s: Temperature received : %f.', board, converted_temp);
             var timeStamp = moment().format("MMM Do YY, h:mm:ss a");
             var obj = { temp: converted_temp, time: timeStamp };
             
             // Connect Database
             MongoClient.connect(db_url, { useNewUrlParser: true }, function(err, db){
-                console.log("\x1b[34mProcess\x1b[0m -> Database connected.");
+                if (err) {
+                    console.log("\x1b[31mProcess:\x1b[0m Error: Occured when connecting database.");
+                    console.log(err);
+                    return;
+                    // throw err;
+                }
+                // console.log("\x1b[34mProcess\x1b[0m -> Database connected.");
 
                 var temperature = db.db("temperature");
 
                 temperature.collection(board_id.toString()).insertOne(obj, function(err, res) {
-                    if (err) throw err;
-                    console.log("\x1b[34mProcess\x1b[0m -> Record: temp: "+obj.temp+" time: "+obj.time+" has added to Temperaure database under collection "+board_id.toString()+".");
+                    if (err) {
+                        console.log("\x1b[31mProcess:\x1b[0m Error: Occured when connecting collection %d.", board_id);
+                        console.log(err);
+                        return;
+                        // throw err;
+                    }
+                    console.log("\x1b[34mProcess\x1b[0m -> Record: temp: %f, time: %s has added to Temperaure database under collection %d.\n", obj.temp, obj.time, board_id);
                 });
 
                 // If overheated, trigger alert mail. (TODO: DCA_MAIL_CAP.)
@@ -157,35 +175,45 @@ BoardNames.forEach(function(board){
                         else
                             console.log(info);
                     });
-                    console.log('\x1b[34mProcess\x1b[0m -> Alert email sent. Temperature at the moment is' + data);
+                    console.log('\x1b[91mProcess\x1b[0m -> Alert email sent. Temperature at the moment is %f.\n', obj.temp);
                 }
                 
                 db.close();
-                console.log("\x1b[34mProcess\x1b[0m -> Database disconnected.");
+                // console.log("\x1b[34mProcess\x1b[0m -> Database disconnected.");
             });
         }
     
-        if (buffer[0] == 10){
+        if (buffer[0] == MEM_R_ACK){
             // int32 has 4 byte alignment. Check first.
             var payload_len = buffer.length - 4;
             
-            console.log('\x1b[32mProxy Packet\x1b[0m -> From 10.1.2.166: Memory reading packet received. Length: ' + payload_len);
+            console.log('\x1b[32mProxy Packet\x1b[0m -> From %s: Memory read packet received. Length: %d.', board, payload_len);
     
             var payload_len_tail = payload_len % 4;
-            // var payload_len_aligned = payload_len - payload_len_tail;
+            var payload_len_aligned = payload_len - payload_len_tail;
             if (payload_len_tail) {
-                console.log('\x1b[91mProxy Packet Error\x1b[0m -> From 10.1.2.166: \x1b[31mERROR!\x1b[0m Payload is unaligned.');
+                console.log('\x1b[91mProxy Packet Error\x1b[0m -> From %s: \x1b[31mERROR!\x1b[0m Payload is unaligned.', board);
                 return;
             }
     
             var i;
             var payload = '';
             for (i = 0; i < payload_len; i+= 4) {
-                payload += buffer.readUInt32LE(4+i).toString(16);
+                payload += buffer.readUInt32LE(4+i).toString(16).padStart(8,'0');
                 payload += ' ';
             }
 
-            console.log('\x1b[32mProxy Packet\x1b[0m -> From 10.1.2.166: Memory payload received ' + payload);
+            console.log('\x1b[32mProxy Packet\x1b[0m -> From %s: Memory payload received ' + payload, board);
+
+            temp_global_socket.write(JSON.stringify({ opcode: BRD_MEM_R, name: board, id: Boarddata[board].ID, return: ONSUCCESS, content: payload}));
+
+        }
+
+        if (buffer[0] == MEM_W_ACK){
+            console.log('\x1b[32mProxy Packet\x1b[0m -> From %s: Memory write acknowledge received.', board);
+
+            temp_global_socket.write(JSON.stringify({ opcode: BRD_MEM_W, name: board, id: Boarddata[board].ID, return: ONSUCCESS}));
+
         }
     });
 
@@ -197,7 +225,7 @@ BoardNames.forEach(function(board){
             console.log("\x1b[31mDatabase Error:\x1b[0m -> Database is offline.");
             return;
         }
-        console.log("\x1b[35mDCA Setup\x1b[0m -> Database connected.");
+        // console.log("\x1b[35mDCA Setup\x1b[0m -> Database connected.");
 
         var temperature = db.db("temperature");
         temperature.createCollection(board_id.toString(), function(err, res) {
@@ -216,7 +244,7 @@ BoardNames.forEach(function(board){
 
 });
 
-// Check for unconnected proxies. Will recall connect every 15 secs // TODO: comment this until beta test
+// Check for unconnected proxies. Will recall connect every 15 secs // TODO: uncomment this when beta test
 // setInterval(() => {
 //     for (board in unconnected) {
 //         // console.log(board);
@@ -228,22 +256,20 @@ BoardNames.forEach(function(board){
 
 // Command Server
 const commandServer = net.createServer(function(socket){
-    console.log('\x1b[32mCommandServer\x1b[0m -> Connected to web server.');
+    console.log('\x1b[33mCommandServer\x1b[0m -> Connected to web server.');
+
+    temp_global_socket = socket;
+
     socket.setEncoding("utf8");
     socket.on('data', function(data) {
-        console.log('\x1b[32mCommandServer\x1b[0m -> Data Received: ' + data);
+        console.log('\x1b[33mCommandServer\x1b[0m -> Data Received: ' + data);
         var packet = JSON.parse(data);
         // console.log(packet);
 
         if(packet.opcode === BRD_RST) {
             var name = packet.param1;
             var id = packet.param2;
-            console.log('\x1b[32mCommandServer\x1b[0m -> Reset Command on board: ' + name+'('+id+').');
-
-            var buffer = Buffer.alloc(4);
-            buffer.writeUInt32LE(3,0);
-            console.log('DCA: Send packet:');
-            console.log(buffer);
+            console.log('\x1b[33mCommandServer\x1b[0m -> Reset Command on board: %s(%d).', name, id);
 
             if (!(name in Boarddata)) {
                 socket.write(JSON.stringify({ opcode: BRD_RST, name: name, id: id, return: ONFAILURE, err_msg: 'Board '+name+' is not in track list.'}));
@@ -261,9 +287,10 @@ const commandServer = net.createServer(function(socket){
             }
 
             var buffer = Buffer.alloc(4);
-            buffer.writeUInt32LE(3,0);
+            buffer.writeUInt32LE(RST_CMD,0);
             console.log('DCA: Send packet:');
             console.log(buffer);
+            proxy[name].write(buffer);
 
             socket.write(JSON.stringify({ opcode: BRD_RST, name: name, id: id, return: ONSUCCESS}));
         }
@@ -271,9 +298,9 @@ const commandServer = net.createServer(function(socket){
         if(packet.opcode === BRD_MEM_R) {
             var name = packet.param1;
             var id = packet.param2;
-            var address = package.param3;
+            var address = packet.param3;
             var byte = packet.param4;
-            console.log('\x1b[32mCommandServer\x1b[0m -> Memory Read Command on board: ' + name+'('+id+') at '+address+' for '+byte+' bytes.');
+            console.log('\x1b[33mCommandServer\x1b[0m -> Memory Read Command on board: %s(%d) at %s for %d bytes', name, id, address, byte);
 
             if (!(name in Boarddata)) {
                 socket.write(JSON.stringify({ opcode: BRD_MEM_R, name: name, id: id, return: ONFAILURE, err_msg: 'Board '+name+' is not in track list.'}));
@@ -281,7 +308,7 @@ const commandServer = net.createServer(function(socket){
             }
     
             if (Boarddata[name].ID !==id) {
-                socket.write(JSON.stringify({ opcode: BRD_MEM_R, name: name, id: id, return: ONFAILURE, err_msg: 'Board '+id+' is not in record.'}));
+                socket.write(JSON.stringify({ opcode: BRD_MEM_R, name: name, id: id, return: ONFAILURE, err_msg: 'Board id:'+id+' is not in record.'}));
                 return;
             }
                 
@@ -290,12 +317,59 @@ const commandServer = net.createServer(function(socket){
                 return;
             }
 
-            socket.write(JSON.stringify({ opcode: BRD_MEM_R, name: name, id: id, return: ONSUCCESS, address: address, byte: byte, content: "DEADBEEF"}));
+            // socket.write(JSON.stringify({ opcode: BRD_MEM_R, name: name, id: id, return: ONSUCCESS, address: address, byte: byte, content: "DEADBEEF"}));
     
-            var buffer = Buffer.alloc(4);
-            buffer.writeUInt32LE(3,0);
+            var buffer = Buffer.alloc(12);
+            buffer.writeUInt32LE(MEM_R,0)
+            buffer.writeUInt32LE(address,4);
+            buffer.writeUInt32LE(byte,8);
             console.log('DCA: Send packet:');
             console.log(buffer);
+
+            proxy[name].write(buffer);
+        }
+
+        if(packet.opcode === BRD_MEM_W) {
+            var name = packet.param1;
+            var id = packet.param2;
+            var address = packet.param3;
+            var byte = packet.param4;
+            var value = packet.param5;
+            console.log('\x1b[33mCommandServer\x1b[0m -> Memory Write Command on board: %s(%d) at %s for %d bytes. Value: %s.', name, id, address, byte, value);
+
+            if (!(name in Boarddata)) {
+                socket.write(JSON.stringify({ opcode: BRD_MEM_R, name: name, id: id, return: ONFAILURE, err_msg: 'Board '+name+' is not in track list.'}));
+                return;
+            }
+    
+            if (Boarddata[name].ID !==id) {
+                socket.write(JSON.stringify({ opcode: BRD_MEM_R, name: name, id: id, return: ONFAILURE, err_msg: 'Board id:'+id+' is not in record.'}));
+                return;
+            }
+                
+            if (name in unconnected) {
+                socket.write(JSON.stringify({ opcode: BRD_MEM_R, name: name, id: id, return: ONFAILURE, err_msg: 'Board '+name+' is offline.'}));
+                return;
+            }
+
+            // socket.write(JSON.stringify({ opcode: BRD_MEM_R, name: name, id: id, return: ONSUCCESS, address: address, byte: byte, content: "DEADBEEF"}));
+            
+            var buffer_len = byte + 12;
+
+            var buffer = Buffer.alloc(buffer_len);
+            buffer.writeUInt32LE(MEM_W,0)
+            buffer.writeUInt32LE(address,4);
+            buffer.writeUInt32LE(byte,8);
+
+            for (i = 0; i < buffer_len - 12; i+= 4) {
+                var writeVal = '0x' + value.substring(i*2, (i+4)*2);
+                buffer.writeUInt32LE(writeVal.toString('hex'), 12+i);
+            }
+
+            console.log('DCA: Send packet:');
+            console.log(buffer);
+
+            proxy[name].write(buffer);
         }
     });
     socket.on('end', function(){
@@ -305,6 +379,8 @@ const commandServer = net.createServer(function(socket){
 });
 
 commandServer.listen(8013, '127.0.0.1');
+
+
 
 
 

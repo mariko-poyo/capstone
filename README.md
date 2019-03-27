@@ -4,13 +4,6 @@ Monitor application for tracing client board status under Galapagos.
 Updating...
 
 **Last Commit:**
-* Updated Overview tab, fixed several bugs, removed useless code.
-* Fixed Notifier in app.js
-* Rewrote p_process logic
-* Improved chart performance
-* Designed part of protocol logic. Prepare for future integration.
-
-**Current Commit:**
 * Completed most part of protocal handling
 * Revised sim_board interface to fit in new protocol
 * Updated setInterval logic in frontend and socket.io logic. Now client will do less polling while server is offline.
@@ -19,9 +12,15 @@ Updating...
 * Board_data.json updated.
 * Navigation bar is working now.
 
+**Current Commit:**
+* Memory operations are now generally working. Functionalities are fully implemented for backend.
+* Set suggestedMax/Min from 40 to 75 for y-axis in board chart.
+* Fixed some of the terminal output format. Reduced log.
+
+
 **TODO:**
 * Finish protocol for setThreshold.
-* Memory operation interface on frontend.
+* ~Memory operation interface on frontend.~ Improve for long read/write memory operations.
 * Complete command log logic.
 * History page design.
 * Time chart and dashboard should handle offline events.
@@ -40,7 +39,7 @@ Updating...
 #### Note:
 * If ELIFECYCLE error appears on "npm start", it means someone else is using those ports. So modify APP_PORT in
 app.js and default 3000 port in ./bin/www to some other ports and the problem should be resolved.
-* Now sim_board receives 2 params in commandline. [host, port] `No default value`. 
+* Now sim_board receives 2 params in commandline. [host, port] **No default value**. 
 * Port polling in DCA is turned off at current stage for debugging. So make sure sim_board or real board is online before DCA running.
 
 **Setup**

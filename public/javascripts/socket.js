@@ -35,8 +35,10 @@ $(function (){
 	});
 	
 	socket.on('connect_error' , function(err){
-		console.log(err);
+		console.log('connect_error');
+		clearInterval(Global.timer);
 	});
+
 	 
 	socket.on('reset return' , function(packet){
 		if(packet.status === ONSUCCESS) {
@@ -46,12 +48,39 @@ $(function (){
 		}
 	});
 
+	socket.on('mem read return' , function(packet){
+		var ret = document.getElementById("MemoryReturn");
+		if(packet.status === ONSUCCESS) {
+			ret.innerText = "Memory payload for board "+ packet.name+": " + packet.content;
+			ret.style = "color: green";
+		} else {
+			ret.innerText = "Memory read failed on board "+ packet.name+": " + packet.err_msg;
+			ret.style = "color: red";
+		}
+	});
+
+	socket.on('mem write return' , function(packet){
+		var ret = document.getElementById("MemoryReturn");
+		if(packet.status === ONSUCCESS) {
+			ret.innerText = "Memory write succeeded for board "+ packet.name+".";
+			ret.style = "color: green";
+		} else {
+			ret.innerText = "Memory write failed on board "+ packet.name+": " + packet.err_msg;
+			ret.style = "color: red";
+		}
+	});
+
 	socket.on('dashboard update' , function(data){
 		console.log('Received package from dashboard update.')
 		console.log(data);
 		var index = 0;
 		for (var item in data) {
 			Global.configs[0].data.datasets[index].data = [data[item]];
+			var statusstring = 'online';
+			var temp = '#temperatureval' + Global.board_info[item].ID;
+			var board = '#boardstatus' + Global.board_info[item].ID;
+			$(temp).text(data[item]);
+			$(board).text(statusstring);
 			index++;
 		}
 
@@ -146,7 +175,9 @@ function addBoardFunc(){
 					},
 					ticks: {
 						fontStyle: 'bold',
-						fontColor: '#FFFFFF'
+						fontColor: '#FFFFFF',
+						suggestedMin: 40,
+                        suggestedMax: 75
 					},
 					color: '#FFFFFF',
 					
@@ -188,7 +219,7 @@ function addBoardFunc(){
 	// add new bar to dashboard
 	var index = Object.keys(Global.tracking).length % Object.keys(window.chartColors).length;
 	var col = window.chartColors[Object.keys(window.chartColors)[index]];
-	Global.tracking[board_name] = {ID: id};
+	Global.tracking[board_name] = id;
 	console.log(Object.keys(window.chartColors)[index]);
 	Global.configs[0].data.datasets.push({
 		label: [board_name],     // Board names update here
@@ -226,4 +257,48 @@ socket.on('disconnect', (reason) => {
 
 function resetBoard(name){
 	socket.emit('reset', name, Global.board_info[name].ID);
+}
+
+function setThreshold(){
+	
+}
+
+function memRead(){
+	var name = Global.activeTab;
+
+	var ret = document.getElementById("MemoryReturn");
+
+	if (name === 'Overview' || !name) {
+		ret.innerText = "Invalid operation: Select a specific board."
+		ret.style = "color: red";
+		return;
+	}
+
+	var id = Global.board_info[name].ID;
+	var address = document.getElementById("MemoryAddress").value;
+	var byte = document.getElementById("Byte").value;
+	
+	ret.innerText = ""
+
+	socket.emit('mem read', name, id, address, byte);
+}
+
+function memWrite(){
+	var name = Global.activeTab;
+
+	var ret = document.getElementById("MemoryReturn");
+
+	if (name === 'Overview' || !name) {
+		ret.innerText = "Invalid operation: Select a specific board."
+		ret.style = "color: red";
+		return;
+	}
+
+	var id = Global.board_info[name].ID;
+	var address = document.getElementById("MemoryAddress").value;
+	var byte = parseInt(document.getElementById("Byte").value);
+	var value = document.getElementById("Value").value.padEnd(byte*2,'0');
+	
+	ret.innerText = ""
+	socket.emit('mem write', name, id, address, byte, value);
 }

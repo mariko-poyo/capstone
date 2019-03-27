@@ -12,7 +12,8 @@ const express = require('express');
 const app = express();
 const net = require('net');
 const commandProxy = new net.Socket();
-var DCAStatus = 0;
+
+var DCAStatus = 0; // DCA Online Flag
 
 
 const APP_PORT= 5557; //tmp -> change it to some other port if ELIFECYCLE error appears
@@ -103,25 +104,32 @@ io.on('connection', function(socket){
 
     // Receive request from client. TODO: consider large scale connection in the future.
     socket.on('request', (ID) => {
-        console.log("\x1b[34mio.connection:\x1b[0m Request received from board ID:" + ID);
+        console.log("\x1b[92mTemperature Update:\x1b[0m Request received from board ID:" + ID);
         MongoClient.connect(url, { useNewUrlParser: true }, function(err, db){
             if (err) {
-                console.log("\x1b[34mio.connection:\x1b[0m Error: Database is offline!");
+                console.log("\x1b[34mTemperature Update:\x1b[0m Error: Occured when connecting database.");
+                console.log(err);
                 return;
                 // throw err;
             }
             
-            console.log("\x1b[34mio.connection:\x1b[0m Database connected.");
+            // console.log("\x1b[34mTemperature Update:\x1b[0m Database connected.");
     
             var temperature = db.db("temperature");
     
             obj = temperature.collection(ID.toString()).find().sort({"time": -1}).limit(1).toArray(function(err, result){
-                if (err) throw err;
+                if (err) {
+                    console.log("\x1b[31mTemperature Update:\x1b[0m Error: Occured when connecting collection.");
+                    console.log(err);
+                    return;
+                    // throw err;
+                }
+
                 // console.log(result);
                 if (result.length == 0) {
-                    console.log("\x1b[34mio.connection:\x1b[0m Error: Database is empty for board ID:"+ID+".");
+                    console.log("\x1b[31mTemperature Update:\x1b[0m Error: Database is empty for board ID:"+ID+".");
                     db.close();
-                    console.log("\x1b[34mio.connection:\x1b[0m Database disconnected.\n");
+                    console.log("\x1b[31mTemperature Update:\x1b[0m Database disconnected.\n");
                 } else {
                     if (result[0].temp >= 90) {
                         console.log('Notifier triggered.');
@@ -136,25 +144,26 @@ io.on('connection', function(socket){
                         });
                     }
                     io.emit('temperature update', {id: ID, time: result[0].time, temperature: result[0].temp});
-                    console.log("\x1b[34mio.connection:\x1b[0m Result: time - " + result[0].time + ", temperature - " + result[0].temp + " sent.");
+                    console.log("\x1b[92mTemperature Update:\x1b[0m Result: time - %s, temperature - %f sent.\n", result[0].time, result[0].temp);
                     db.close();
-                    console.log("\x1b[34mio.connection:\x1b[0m Database disconnected.\n");
+                    // console.log("\x1b[34mTemperature Update:\x1b[0m Database disconnected.\n");
                 }
             });
         });
     });
 
     socket.on('dashboard', (trackingList) => {
-        console.log("\x1b[34mio.connection:\x1b[0m Dashboard update request received.");
-        console.log(trackingList);
+        console.log("\x1b[33mDashboard Update:\x1b[0m Dashboard update request received.");
+        // console.log(trackingList);
         MongoClient.connect(url, { useNewUrlParser: true },async function(err, db){
             if (err) {
-                console.log("\x1b[34mio.connection:\x1b[0m Error: Database is offline!");
+                console.log("\x1b[31mDashboard Update:\x1b[0m Error: Occured when connecting database.");
+                console.log(err);
                 return;
                 // throw err;
             }
             
-            console.log("\x1b[34mio.connection:\x1b[0m Database connected.");
+            // console.log("\x1b[34mio.connection:\x1b[0m Database connected.");
     
             var temperature = db.db("temperature");
 
@@ -163,9 +172,14 @@ io.on('connection', function(socket){
             for (var item in trackingList) {
                 // console.log(item);
                 let promise = new Promise(function(resolve, reject) {
-                    var id = trackingList[item].ID;
+                    var id = trackingList[item];
                     obj = temperature.collection(id.toString()).find().sort({"time": -1}).limit(1).toArray(function(err, result){
-                        if (err) console.log(err);
+                        if (err) {
+                            console.log("\x1b[34mio.connection:\x1b[0m Error: Occured when connecting collection.");
+                            console.log(err);
+                            return;
+                            // throw err;
+                        }
                         // console.log(result);
                         if (result.length == 0) {
                             // ret[item] = undefined;
@@ -173,29 +187,29 @@ io.on('connection', function(socket){
                             console.log("\x1b[33mDashboard Update:\x1b[0m Error: Database is empty for board ID:"+id+".");
                         } else {
                             ret[item] = result[0].temp;
-                            console.log("\x1b[33mDashboard Update:\x1b[0m Insert: " + "temperature - " + result[0].temp + " to ret.");
+                            // console.log("\x1b[33mDashboard Update:\x1b[0m Insert: " + "temperature - " + result[0].temp + " to ret.");
                         }
                         resolve("Lookup end"); // should not reject.
                     });
                 });
 
-                console.log("\x1b[33mDashboard Update:\x1b[0m Wait for promise.");
+                // console.log("\x1b[33mDashboard Update:\x1b[0m Wait for promise.");
                 await promise; 
-                console.log("\x1b[33mDashboard Update:\x1b[0m promise end.");
+                // console.log("\x1b[33mDashboard Update:\x1b[0m promise end.");
             }
 
-            console.log("\x1b[33mDashboard Update:\x1b[0m Send ret to frontend.");
-            console.log(ret);
+            console.log("\x1b[33mDashboard Update:\x1b[0m Send %s to frontend. \n", JSON.stringify(ret));
+            // console.log(ret);
             io.emit('dashboard update', ret);
 
             db.close();
-            console.log("\x1b[33mDashboard Update:\x1b[0m Database disconnected.\n");
+            // console.log("\x1b[33mDashboard Update:\x1b[0m Database disconnected.\n");
         });
 
     });
 
     socket.on('reset', (name, ID) => {
-        console.log("\x1b[34mio.connection:\x1b[0m Reset command received from board "+ name + ': '+ ID);
+        console.log("\x1b[34mUser Command:\x1b[0m Reset command received from board "+ name + ': '+ ID);
         if(DCAStatus) {
             commandProxy.write(JSON.stringify({ opcode: BRD_RST, param1: name, param2: ID }));
         } else {
@@ -203,12 +217,21 @@ io.on('connection', function(socket){
         }
     });
 
-    socket.on('mem_read', (name, ID, addr, byte) => {
-        console.log("\x1b[34mio.connection:\x1b[0m Memory read command received from board " + name + ": " + ID + " for " + byte + " at " + addr);
+    socket.on('mem read', (name, ID, addr, byte) => {
+        console.log("\x1b[34mUser Command:\x1b[0m Memory read command received from board %s:%d for %d bytes at %s\n", name, ID, byte, addr);
         if (DCAStatus) {
             commandProxy.write(JSON.stringify({ opcode: BRD_MEM_R, param1: name, param2: ID , param3: addr, param4: byte}));
         } else {
-            io.emit('mem_read return', { name: name, ID: ID, status: ONFAILURE, err_msg: "DCA is offline." });
+            io.emit('mem read return', { name: name, ID: ID, status: ONFAILURE, err_msg: "DCA is offline." });
+        }
+    });
+
+    socket.on('mem write', (name, ID, addr, byte, value) => {
+        console.log("\x1b[34mUser Command:\x1b[0m Memory write command received from board %s:%d for %d bytes at %s - Value: %s.\n", name, ID, byte, addr, value);
+        if (DCAStatus) {
+            commandProxy.write(JSON.stringify({ opcode: BRD_MEM_W, param1: name, param2: ID , param3: addr, param4: byte, param5: value}));
+        } else {
+            io.emit('mem write return', { name: name, ID: ID, status: ONFAILURE, err_msg: "DCA is offline." });
         }
     });
 
@@ -218,24 +241,24 @@ io.on('connection', function(socket){
     });
 });
 
-// Command Proxy
+// Command Proxy - DCA proxy
 commandProxy.on('connect', function(err){
-    console.log('\x1b[32mDCA:\x1b[0m Connection Setup.');
+    console.log('\x1b[32mDCA Client:\x1b[0m Connection Setup.');
     commandProxy.setEncoding("utf8");
     DCAStatus = 1;
 });
 
 commandProxy.on('error',(res) =>{
-    console.log('\x1b[31mDCA:\x1b[0m Error on DCA connection: ' + res.address + '/' + res.port + '. Error Code: ' + res.code);
+    console.log('\x1b[31mDCA Client:\x1b[0m Error on DCA connection: ' + res.address + '/' + res.port + '. Error Code: ' + res.code);
 });
 
 commandProxy.on('close', () => {
-    console.log('\x1b[31mDCA:\x1b[0m -> DCA is disconneted.');
+    console.log('\x1b[31mDCA Client:\x1b[0m -> DCA is disconneted.\n ');
     DCAStatus = 0;
 });
 
 commandProxy.on('data', (data) => {
-    console.log('\x1b[31mDCA:\x1b[0m -> DCA sent data packet: ' + data);
+    console.log('\x1b[32mDCA Client:\x1b[0m -> From DCA received data packet: ' + data);
     var packet = JSON.parse(data);
     if (packet.opcode === BRD_RST) {
         if (packet.return === ONSUCCESS) {
@@ -244,9 +267,26 @@ commandProxy.on('data', (data) => {
             io.emit('reset return', {name: packet.name, ID: packet.id, status: ONFAILURE, err_msg: packet.err_msg});
         }
     }
+
+    if (packet.opcode === BRD_MEM_R) {
+        if (packet.return === ONSUCCESS) {
+            io.emit('mem read return', {name: packet.name, ID: packet.id, status: ONSUCCESS, content: packet.content});
+        } else {
+            io.emit('mem read return', {name: packet.name, ID: packet.id, status: ONFAILURE, err_msg: packet.err_msg});
+        }
+    }
+
+    if (packet.opcode === BRD_MEM_W) {
+        if (packet.return === ONSUCCESS) {
+            io.emit('mem write return', {name: packet.name, ID: packet.id, status: ONSUCCESS});
+        } else {
+            io.emit('mem write return', {name: packet.name, ID: packet.id, status: ONFAILURE, err_msg: packet.err_msg});
+        }
+    }
     
 });
 
+// DCA reconnect routine
 setInterval(() => {
     if(!DCAStatus){
         commandProxy.connect(8013, '127.0.0.1');

@@ -10,9 +10,9 @@ var Global = {
     timer: undefined,
     numGraphPoints: 10,
     activeTab: NaN,
-    board_info: {},
-    configs: [],
-    tracking: {}
+    board_info: {},     // Name: {ID, IP, port}
+    configs: [],        
+    tracking: {}        // Name: ID
 };
 
 var color = Chart.helpers.color;
