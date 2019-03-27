@@ -41,7 +41,7 @@
 #include "platform_config.h"
 //header file for reset ip
 #include "auto_reset_10bits.h"
-
+#include "source_mac_address_setting.h"
 #if defined (__arm__) || defined(__aarch64__)
 #include "xil_printf.h"
 #endif
@@ -128,8 +128,7 @@ int IicPhyReset(void);
 #endif
 #endif
 
-// not used until mac address filter is ready
-//volatile char* input_mb = (char*)0x44a20000;
+volatile char* mac_setter = (char*)0x45000000;
 
 unsigned int temp_threshold = 0;
 extern volatile char* reset_ip;
@@ -171,12 +170,13 @@ int main()
 	netmask.addr = 0;
 #else
 	/* initliaze IP addresses to be used */
-	IP4_ADDR(&ipaddr,  10, 1,   2, 166);
+	IP4_ADDR(&ipaddr,  10, 1,   2, 180);
 	IP4_ADDR(&netmask, 255, 255, 255,  0);
 	IP4_ADDR(&gw,      10, 1,   2,  1);
 #endif	
 #endif
 	print_app_header();
+
 	/*
 	//Here mac address is 4649cafebabe
 	int mac_addr;
@@ -190,7 +190,6 @@ int main()
 	mac_addr = INPUT_FROM_MB_mReadReg(input_mb, INPUT_FROM_MB_S00_AXI_SLV_REG3_OFFSET);
 	xil_printf("current mac_addr(lower 32bits): %x\r\n", mac_addr);
 	*/
-    
 	lwip_init();
 
 #if (LWIP_IPV6 == 0)
@@ -255,25 +254,27 @@ int main()
 
 #endif
 
-    /* Instantiate sysmon */
+	SOURCE_MAC_ADDRESS_SETTING_mWriteReg(mac_setter, SOURCE_MAC_ADDRESS_SETTING_S00_AXI_SLV_REG1_OFFSET, 0x3e8326a4);
+	SOURCE_MAC_ADDRESS_SETTING_mWriteReg(mac_setter, SOURCE_MAC_ADDRESS_SETTING_S00_AXI_SLV_REG2_OFFSET, 0x0016);
+	SOURCE_MAC_ADDRESS_SETTING_mWriteReg(mac_setter, SOURCE_MAC_ADDRESS_SETTING_S00_AXI_SLV_REG3_OFFSET, 0x0);
+	SOURCE_MAC_ADDRESS_SETTING_mWriteReg(mac_setter, SOURCE_MAC_ADDRESS_SETTING_S00_AXI_SLV_REG0_OFFSET, 0x1);
+
+	//variables
+
 	XSysMon_Config *sysmon_config;
 
-	sysmon_config = XSysMon_LookupConfig(XPAR_TEMP_IP_SYSTEM_MANAGEMENT_WIZ_0_DEVICE_ID);
+	sysmon_config = XSysMon_LookupConfig(XPAR_SHELL_I_TEMP_IP_SYSTEM_MANAGEMENT_WIZ_0_BASEADDR);
 	if (sysmon_config == NULL) {
 		return XST_FAILURE;
 	}
 	XSysMon_CfgInitialize(&SysMonInst, sysmon_config, sysmon_config->BaseAddress);
 
-	// enable temperature update from xadc to auto reset IP
+	// enable temp update from xadc
 	XSysMon_EnableTempUpdate(&SysMonInst);
 
-    /* convert 60 into hex form */
 	temp_threshold = ceil((60 + 273.6777) * 1024 / 501.3743);
 
-    
-	/* write value threshold to offset 4 */
 	AUTO_RESET_10BITS_mWriteReg(reset_ip, 0x4, (u32)temp_threshold);
-    /* write value 1 to offset 8 to auto reset */
 	AUTO_RESET_10BITS_mWriteReg(reset_ip, 0x8, 1);
 
 
