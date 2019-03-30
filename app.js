@@ -7,6 +7,7 @@ const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 
 const fs = require('fs');
+var hash = require('object-hash');
 
 const express = require('express');
 const app = express();
@@ -50,6 +51,9 @@ const BRD_THR = 2;
 const BRD_MEM_R = 3;
 const BRD_MEM_W = 4;
 const DCA_ALRT_CAP = 5;
+
+// Client socket table
+var client_table = {};
 
 
 
@@ -100,9 +104,16 @@ app.use(function(err, req, res, next) {
 
 //new connection
 io.on('connection', function(socket){
-    console.log("New client connected");
+    var client_hash = hash.MD5(socket);
+    var client_id = client_hash.substring(0,8);
 
-    // Receive request from client. TODO: consider large scale connection in the future.
+    if (client_id in client_table) throw "Oh-oh, you won the jackpot: Duplicated client id. Congrats!";
+
+    console.log("New client connected. Hash: %s. ID: %s.", client_hash, client_id);
+
+    client_table[client_id] = socket;
+
+    // Receive request from client.
     socket.on('request', (ID) => {
         console.log("\x1b[92mTemperature Update:\x1b[0m Request received from board ID:" + ID);
         MongoClient.connect(url, { useNewUrlParser: true }, function(err, db){
@@ -143,7 +154,7 @@ io.on('connection', function(socket){
                             // Response is response from notification
                         });
                     }
-                    io.emit('temperature update', {id: ID, time: result[0].time, temperature: result[0].temp});
+                    socket.emit('temperature update', {id: ID, time: result[0].time, temperature: result[0].temp});
                     console.log("\x1b[92mTemperature Update:\x1b[0m Result: time - %s, temperature - %f sent.\n", result[0].time, result[0].temp);
                     db.close();
                     // console.log("\x1b[34mTemperature Update:\x1b[0m Database disconnected.\n");
@@ -200,7 +211,7 @@ io.on('connection', function(socket){
 
             console.log("\x1b[33mDashboard Update:\x1b[0m Send %s to frontend. \n", JSON.stringify(ret));
             // console.log(ret);
-            io.emit('dashboard update', ret);
+            socket.emit('dashboard update', ret);
 
             db.close();
             // console.log("\x1b[33mDashboard Update:\x1b[0m Database disconnected.\n");
@@ -208,36 +219,42 @@ io.on('connection', function(socket){
 
     });
 
+    // User Command
     socket.on('reset', (name, ID) => {
         console.log("\x1b[34mUser Command:\x1b[0m Reset command received from board "+ name + ': '+ ID);
         if(DCAStatus) {
-            commandProxy.write(JSON.stringify({ opcode: BRD_RST, param1: name, param2: ID }));
+            commandProxy.write(JSON.stringify({ opcode: BRD_RST, param1: name, param2: ID, client_id: client_id }));
         } else {
-            io.emit('reset return', {name: name, ID: ID, status: ONFAILURE, err_msg: "DCA is offline."});
+            socket.emit('reset return', {name: name, ID: ID, status: ONFAILURE, err_msg: "DCA is offline."});
         }
     });
 
     socket.on('mem read', (name, ID, addr, byte) => {
         console.log("\x1b[34mUser Command:\x1b[0m Memory read command received from board %s:%d for %d bytes at %s\n", name, ID, byte, addr);
         if (DCAStatus) {
-            commandProxy.write(JSON.stringify({ opcode: BRD_MEM_R, param1: name, param2: ID , param3: addr, param4: byte}));
+            commandProxy.write(JSON.stringify({ opcode: BRD_MEM_R, param1: name, param2: ID, param3: addr, param4: byte, client_id: client_id}));
         } else {
-            io.emit('mem read return', { name: name, ID: ID, status: ONFAILURE, err_msg: "DCA is offline." });
+            socket.emit('mem read return', { name: name, ID: ID, status: ONFAILURE, err_msg: "DCA is offline." });
         }
     });
 
     socket.on('mem write', (name, ID, addr, byte, value) => {
         console.log("\x1b[34mUser Command:\x1b[0m Memory write command received from board %s:%d for %d bytes at %s - Value: %s.\n", name, ID, byte, addr, value);
         if (DCAStatus) {
-            commandProxy.write(JSON.stringify({ opcode: BRD_MEM_W, param1: name, param2: ID , param3: addr, param4: byte, param5: value}));
+            commandProxy.write(JSON.stringify({ opcode: BRD_MEM_W, param1: name, param2: ID, param3: addr, param4: byte, param5: value, client_id: client_id}));
         } else {
-            io.emit('mem write return', { name: name, ID: ID, status: ONFAILURE, err_msg: "DCA is offline." });
+            socket.emit('mem write return', { name: name, ID: ID, status: ONFAILURE, err_msg: "DCA is offline." });
         }
     });
 
+    socket.on('error', (error) => {
+        console.log("Client met error: %s. Hash: %s.", error.code, client_id);
+    });
+
     // This happens when broswer disconnet from server
-    socket.on('disconnect', () => {
-        console.log("Client disconnected");
+    socket.on('disconnect', (reason) => {
+        console.log("Client disconnected: %s. Hash: %s.", reason, client_id);
+        delete client_table[client_id];
     });
 });
 
@@ -262,25 +279,25 @@ commandProxy.on('data', (data) => {
     var packet = JSON.parse(data);
     if (packet.opcode === BRD_RST) {
         if (packet.return === ONSUCCESS) {
-            io.emit('reset return', {name: packet.name, ID: packet.id, status: ONSUCCESS});
+            client_table[packet.client_id].emit('reset return', {name: packet.name, ID: packet.id, status: ONSUCCESS});
         } else {
-            io.emit('reset return', {name: packet.name, ID: packet.id, status: ONFAILURE, err_msg: packet.err_msg});
+            client_table[packet.client_id].emit('reset return', {name: packet.name, ID: packet.id, status: ONFAILURE, err_msg: packet.err_msg});
         }
     }
 
     if (packet.opcode === BRD_MEM_R) {
         if (packet.return === ONSUCCESS) {
-            io.emit('mem read return', {name: packet.name, ID: packet.id, status: ONSUCCESS, content: packet.content});
+            client_table[packet.client_id].emit('mem read return', {name: packet.name, ID: packet.id, status: ONSUCCESS, content: packet.content});
         } else {
-            io.emit('mem read return', {name: packet.name, ID: packet.id, status: ONFAILURE, err_msg: packet.err_msg});
+            client_table[packet.client_id].emit('mem read return', {name: packet.name, ID: packet.id, status: ONFAILURE, err_msg: packet.err_msg});
         }
     }
 
     if (packet.opcode === BRD_MEM_W) {
         if (packet.return === ONSUCCESS) {
-            io.emit('mem write return', {name: packet.name, ID: packet.id, status: ONSUCCESS});
+            client_table[packet.client_id].emit('mem write return', {name: packet.name, ID: packet.id, status: ONSUCCESS});
         } else {
-            io.emit('mem write return', {name: packet.name, ID: packet.id, status: ONFAILURE, err_msg: packet.err_msg});
+            client_table[packet.client_id].emit('mem write return', {name: packet.name, ID: packet.id, status: ONFAILURE, err_msg: packet.err_msg});
         }
     }
     
