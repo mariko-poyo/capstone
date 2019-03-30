@@ -263,7 +263,8 @@ function resetBoard(name){
 }
 
 function setThreshold(){
-	
+	var threshold = parseInt(document.getElementById("Threshold").value);
+	socket.emit('set threshold', name, Global.board_info[name].ID, threshold);
 }
 
 function memRead(){

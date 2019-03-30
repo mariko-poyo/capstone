@@ -98,7 +98,7 @@ BoardNames.forEach(function(board){
             buffer.writeUInt32LE(REQ_TEMP,4)
             proxy[board].write(buffer);
             console.log("Temp Request sent to board %s.",board);
-        }, 1000);
+        }, 10000);
 
     });
 
@@ -127,9 +127,12 @@ BoardNames.forEach(function(board){
         
         var buffer = Buffer.from(data);
         var client_id = buffer.toString('hex',0,4);
-        console.log('\x1b[32mProxy Packet\x1b[0m -> From board %s: data received. To client: %d.', board, client_id);
+
+        console.log(buffer);
+        console.log('\x1b[32mProxy Packet\x1b[0m -> From board %s: data received.', board);
 
         buffer = buffer.slice(4);
+        console.log(buffer);
     
         if (buffer[0] == RESP_TEMP){
             // console.log(buffer.readInt32LE(4));
@@ -141,7 +144,7 @@ BoardNames.forEach(function(board){
             // Connect Database
             MongoClient.connect(db_url, { useNewUrlParser: true }, function(err, db){
                 if (err) {
-                    console.log("\x1b[31mProcess:\x1b[0m Error: Occured when connecting database.");
+                    console.log("\x1b[31mProcess:\x1b[0m Error: Occured when connecting database.\n");
                     console.log(err);
                     return;
                     // throw err;
@@ -152,7 +155,7 @@ BoardNames.forEach(function(board){
 
                 temperature.collection(board_id.toString()).insertOne(obj, function(err, res) {
                     if (err) {
-                        console.log("\x1b[31mProcess:\x1b[0m Error: Occured when connecting collection %d.", board_id);
+                        console.log("\x1b[31mProcess:\x1b[0m Error: Occured when connecting collection %d.\n", board_id);
                         console.log(err);
                         return;
                         // throw err;
@@ -185,7 +188,7 @@ BoardNames.forEach(function(board){
             var payload_len_tail = payload_len % 4;
             var payload_len_aligned = payload_len - payload_len_tail;
             if (payload_len_tail) {
-                console.log('\x1b[91mProxy Packet Error\x1b[0m -> From %s: \x1b[31mERROR!\x1b[0m Payload is unaligned.', board);
+                console.log('\x1b[91mProxy Packet Error\x1b[0m -> From %s: \x1b[31mERROR!\x1b[0m Payload is unaligned.\n', board);
                 return;
             }
 
@@ -198,28 +201,28 @@ BoardNames.forEach(function(board){
                 payload += ' ';
             }
 
-            console.log('\x1b[32mProxy Packet\x1b[0m -> From %s: Memory payload received ' + payload, board);
+            console.log('\x1b[32mProxy Packet\x1b[0m -> From %s: Memory payload received ' + payload + '.\n', board);
 
             web_server_socket.write(JSON.stringify({ opcode: BRD_MEM_R, name: board, id: Boarddata[board].ID, return: ONSUCCESS, content: payload, client_id: client_id}));
 
         }
 
         if (buffer[0] == MEM_R_UACK){
-            console.log('\x1b[32mProxy Packet\x1b[0m -> From %s: Memory read unacknowledge received.', board);
+            console.log('\x1b[32mProxy Packet\x1b[0m -> From %s: Memory read unacknowledge received.\n', board);
 
             web_server_socket.write(JSON.stringify({ opcode: BRD_MEM_R, name: board, id: Boarddata[board].ID, return: ONFAILURE, client_id: client_id}));
 
         }
 
         if (buffer[0] == MEM_W_ACK){
-            console.log('\x1b[32mProxy Packet\x1b[0m -> From %s: Memory write acknowledge received.', board);
+            console.log('\x1b[32mProxy Packet\x1b[0m -> From %s: Memory write acknowledge received.\n', board);
 
             web_server_socket.write(JSON.stringify({ opcode: BRD_MEM_W, name: board, id: Boarddata[board].ID, return: ONSUCCESS, client_id: client_id}));
 
         }
 
         if (buffer[0] == MEM_W_UACK){
-            console.log('\x1b[32mProxy Packet\x1b[0m -> From %s: Memory write unacknowledge received.', board);
+            console.log('\x1b[32mProxy Packet\x1b[0m -> From %s: Memory write unacknowledge received.\n', board);
 
             web_server_socket.write(JSON.stringify({ opcode: BRD_MEM_W, name: board, id: Boarddata[board].ID, return: ONFAILURE, client_id: client_id}));
 

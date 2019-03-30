@@ -247,6 +247,15 @@ io.on('connection', function(socket){
         }
     });
 
+    socket.on('set threshold', (name, ID, threshold) => {
+        console.log("\x1b[34mUser Command:\x1b[0m Set threshold command received from board %s: %d, threshold: %d.", name, ID, threshold);
+        if(DCAStatus) {
+            commandProxy.write(JSON.stringify({ opcode: BRD_THR, param1: name, param2: ID, param3: threshold, client_id: client_id}));
+        } else {
+            socket.emit('set threshold return', {name: name, ID: ID, status: ONFAILURE, err_msg: "DCA is offline."});
+        }
+    });
+
     socket.on('error', (error) => {
         console.log("Client met error: %s. Hash: %s.", error.code, client_id);
     });

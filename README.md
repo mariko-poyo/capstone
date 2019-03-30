@@ -24,6 +24,7 @@ Updating...
 * Complete command log logic.
 * History page design.
 * Time chart and dashboard should handle offline events.
+* Find a way better than using alert for warning messages.
 * Implement more error checking.
 * Remove tracking board button in control panel.
 * Simplify current terminal output.
