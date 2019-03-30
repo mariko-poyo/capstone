@@ -98,7 +98,7 @@ BoardNames.forEach(function(board){
             buffer.writeUInt32LE(REQ_TEMP,4)
             proxy[board].write(buffer);
             console.log("Temp Request sent to board %s.",board);
-        }, 2000);
+        }, 2000); // Checklist: set to 1000
 
     });
 
@@ -276,7 +276,7 @@ BoardNames.forEach(function(board){
 
 });
 
-// Check for unconnected proxies. Will recall connect every 15 secs // TODO: uncomment this when beta test
+// Check for unconnected proxies. Will recall connect every 15 secs // Checklist: uncomment this when beta test
 setInterval(() => {
     for (board in unconnected) {
         console.log("Reconnecting :" + board);
@@ -460,7 +460,7 @@ commandServer.listen(8013, '127.0.0.1');
 
 // Temperature Proxy
 
-// TODO: Hard coding at this moment. Need to be updated to follow board_data.json
+// Hard coding at this moment. Need to be updated to follow board_data.json
 // After having valid list, use for loop here.
 // proxy["Simulated"].connect(9527, '127.0.0.1', function(){
 //     if (err) {
@@ -494,7 +494,7 @@ commandServer.listen(8013, '127.0.0.1');
 //             console.log("\x1b[34mProcess\x1b[0m -> Record: temp: "+obj.temp+" time: "+obj.time+" has added to database.");
 //         });
 
-//         // If overheated, trigger alert mail. (TODO: How to define threshold value here? At last structure diagram p_process should not talk to web server.)
+//         // If overheated, trigger alert mail. 
 //         if (parseFloat(data) >= 100) {
 //             transporter.sendMail(mailOptions, function (err, info) {
 //                 if(err)

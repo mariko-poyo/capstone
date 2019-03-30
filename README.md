@@ -4,22 +4,17 @@ Monitor application for tracing client board status under Galapagos.
 Updating...
 
 **Last Commit:**
-* Completed most part of protocal handling
-* Revised sim_board interface to fit in new protocol
-* Updated setInterval logic in frontend and socket.io logic. Now client will do less polling while server is offline.
-* P_process is renamed to DCA. Add reconnect routine for offline boards, and implement interface for multi-board proxy dict.
-* Implement reset and memory reading interface to frontend. Need to improve further.
-* Board_data.json updated.
-* Navigation bar is working now.
-
-**Current Commit:**
 * Memory operations are now generally working. Functionalities are fully implemented for backend.
 * Set suggestedMax/Min from 40 to 75 for y-axis in board chart.
 * Fixed some of the terminal output format. Reduced log.
 
+**Current Commit:**
+* Finished protocol for setThreshold.
+* Improved logic for multiple clients.
+* Implemented more error checking and simplified current terminal output.
+
 
 **TODO:**
-* Finish protocol for setThreshold.
 * ~Memory operation interface on frontend.~ Improve for long read/write memory operations.
 * Complete command log logic.
 * History page design.
@@ -50,3 +45,8 @@ app.js and default 3000 port in ./bin/www to some other ports and the problem sh
    npm run DCA                      // Run DCA
    npm run sim --host --port        // Run board simulator
 ```
+
+**Setup Checklist**
+* Uncomment reconnect logic
+* Enable reset command
+* Check DCA routine interval to be 1s
