@@ -23,11 +23,14 @@ $(function (){
 				dataset.data.splice(0, dataset.data.length - Global.numGraphPoints);
 			});
 		}
-
-		console.log("On Update: Actual source time = "+ data.time);
 		
+		// TODO: check data.time
+		var current = newTimeString(0);
+		console.log("On Update: Actual source time = "+ data.time + ", current time = " + current);
+		console.log("data.time type: "+ typeof(data.time) + ", current type: " + typeof(current));
+
 		Global.configs[data.id].data.datasets[0].data.push({
-        	x: newTimeString(0), // data.time
+        	x: moment(data.time, "MMM Do YY, h:mm:ss a").format(), //  data.time
         	y: data.temperature
     	});
 
@@ -131,8 +134,9 @@ function addBoardFunc(){
 					type: 'time',
 					time: {
 						displayFormats: {
-							quarter: 'MMM D h:mm:ss a'
-						}
+							second: 'h:mm:ss a'
+						},
+						distribution: 'series'
 					},	
 					display: true,
 					scaleLabel: {
@@ -147,8 +151,7 @@ function addBoardFunc(){
 						major: {
 							fontStyle: 'bold',
 							fontColor: '#FFFFFF',
-							suggestedMin: newTimeString(-10),
-                    		suggestedMax: newTimeString(5)
+							source: 'data'
 						},
 						
 					},

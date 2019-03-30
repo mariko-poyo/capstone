@@ -1,6 +1,6 @@
 
 function newTimeString(seconds) {
-    return moment().add(seconds, 's').format();
+    return moment().add(seconds, 's').format("MMM Do YY, h:mm:ss a");
 }
 
 // Global

@@ -110,6 +110,7 @@ BoardNames.forEach(function(board){
             const buffer = Buffer.alloc(4);
             buffer.writeUInt32LE(REQ_TEMP,0)
             proxy[board].write(buffer);
+            console.log("Temp Request sent to board %s.",board);
         }, 1000);
 
     });
@@ -122,6 +123,7 @@ BoardNames.forEach(function(board){
 
     proxy[board].on('close', () => {
         console.log('\x1b[31mProxy Error\x1b[0m -> Board ' + board + ' connection has closed.');
+        clearInterval(timer[board]);
         unconnected[board] = 1;
     });
 
@@ -131,7 +133,7 @@ BoardNames.forEach(function(board){
     });
 
     proxy[board].on('error',(res) =>{
-        console.log('\x1b[31mProxy Error\x1b[0m -> Board ' + board + ' connection: ' + res.address + '/' + res.port + ' met error. Error Code: ' + res.code);
+        console.log('\x1b[31mProxy Error\x1b[0m -> Board ' + board + ' connection met error. Error Code: ' + res.code);
     });
 
     proxy[board].on('data', (data) => {
@@ -140,7 +142,7 @@ BoardNames.forEach(function(board){
     
         if (buffer[0] == RESP_TEMP){
             // console.log(buffer.readInt32LE(4));
-            var converted_temp = buffer.readInt32LE(4) * 501.3743 / 1024 - 273.6777;
+            var converted_temp = buffer.readInt32LE(4) * 503.975 / 4096 - 273.15;
             console.log('\x1b[32mProxy Packet\x1b[0m -> From board %s: Temperature received : %f.', board, converted_temp);
             var timeStamp = moment().format("MMM Do YY, h:mm:ss a");
             var obj = { temp: converted_temp, time: timeStamp };
@@ -209,10 +211,24 @@ BoardNames.forEach(function(board){
 
         }
 
+        if (buffer[0] == MEM_R_UACK){
+            console.log('\x1b[32mProxy Packet\x1b[0m -> From %s: Memory read unacknowledge received.', board);
+
+            temp_global_socket.write(JSON.stringify({ opcode: BRD_MEM_R, name: board, id: Boarddata[board].ID, return: ONFAILURE}));
+
+        }
+
         if (buffer[0] == MEM_W_ACK){
             console.log('\x1b[32mProxy Packet\x1b[0m -> From %s: Memory write acknowledge received.', board);
 
             temp_global_socket.write(JSON.stringify({ opcode: BRD_MEM_W, name: board, id: Boarddata[board].ID, return: ONSUCCESS}));
+
+        }
+
+        if (buffer[0] == MEM_W_UACK){
+            console.log('\x1b[32mProxy Packet\x1b[0m -> From %s: Memory write unacknowledge received.', board);
+
+            temp_global_socket.write(JSON.stringify({ opcode: BRD_MEM_W, name: board, id: Boarddata[board].ID, return: ONFAILURE}));
 
         }
     });
@@ -230,14 +246,14 @@ BoardNames.forEach(function(board){
         var temperature = db.db("temperature");
         temperature.createCollection(board_id.toString(), function(err, res) {
             if (err) throw err;
-            console.log("\x1b[35mDCA Setup\x1b[0m -> Collection "+board_id.toString()+" created under Temperature.");
+            // console.log("\x1b[35mDCA Setup\x1b[0m -> Collection "+board_id.toString()+" created under Temperature.");
         });
 
         var history = db.db("history");
 
         await history.createCollection(board_id.toString(), function(err, res) {
             if (err) throw err;
-            console.log("\x1b[35mDCA Setup\x1b[0m -> Collection "+board_id.toString()+" created under History.");
+            // console.log("\x1b[35mDCA Setup\x1b[0m -> Collection "+board_id.toString()+" created under History.");
             db.close();
         }); 
     });
@@ -247,7 +263,7 @@ BoardNames.forEach(function(board){
 // Check for unconnected proxies. Will recall connect every 15 secs // TODO: uncomment this when beta test
 // setInterval(() => {
 //     for (board in unconnected) {
-//         // console.log(board);
+//         console.log("Reconnecting :" + board);
 //         proxy[board].connect(Boarddata[board].port, Boarddata[board].IP);
 //         delete unconnected[board];
 //     }
