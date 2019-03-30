@@ -98,7 +98,7 @@ BoardNames.forEach(function(board){
             buffer.writeUInt32LE(REQ_TEMP,4)
             proxy[board].write(buffer);
             console.log("Temp Request sent to board %s.",board);
-        }, 10000);
+        }, 2000);
 
     });
 
@@ -277,13 +277,13 @@ BoardNames.forEach(function(board){
 });
 
 // Check for unconnected proxies. Will recall connect every 15 secs // TODO: uncomment this when beta test
-// setInterval(() => {
-//     for (board in unconnected) {
-//         console.log("Reconnecting :" + board);
-//         proxy[board].connect(Boarddata[board].port, Boarddata[board].IP);
-//         delete unconnected[board];
-//     }
-// }, 15000);
+setInterval(() => {
+    for (board in unconnected) {
+        console.log("Reconnecting :" + board);
+        proxy[board].connect(Boarddata[board].port, Boarddata[board].IP);
+        delete unconnected[board];
+    }
+}, 15000);
 
 
 // Command Server
