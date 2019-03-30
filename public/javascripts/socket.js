@@ -51,6 +51,14 @@ $(function (){
 		}
 	});
 
+	socket.on('set threshold return' , function(packet){
+		if(packet.status === ONSUCCESS) {
+			alert("Board "+ packet.name+" has changed reset threshold successfully.", );
+		} else {
+			alert("Board "+ packet.name+" failed to change reset threshold: " + packet.err_msg, );
+		}
+	});
+
 	socket.on('mem read return' , function(packet){
 		var ret = document.getElementById("MemoryReturn");
 		if(packet.status === ONSUCCESS) {

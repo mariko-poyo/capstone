@@ -309,6 +309,14 @@ commandProxy.on('data', (data) => {
             client_table[packet.client_id].emit('mem write return', {name: packet.name, ID: packet.id, status: ONFAILURE, err_msg: packet.err_msg});
         }
     }
+
+    if (packet.opcode === BRD_THR) {
+        if (packet.return === ONSUCCESS) {
+            client_table[packet.client_id].emit('set threshold return', {name: packet.name, ID: packet.id, status: ONSUCCESS});
+        } else {
+            client_table[packet.client_id].emit('set threshold return', {name: packet.name, ID: packet.id, status: ONFAILURE, err_msg: packet.err_msg});
+        }
+    }
     
 });
 

@@ -210,7 +210,9 @@ BoardNames.forEach(function(board){
         if (buffer[0] == MEM_R_UACK){
             console.log('\x1b[32mProxy Packet\x1b[0m -> From %s: Memory read unacknowledge received.\n', board);
 
-            web_server_socket.write(JSON.stringify({ opcode: BRD_MEM_R, name: board, id: Boarddata[board].ID, return: ONFAILURE, client_id: client_id}));
+            var err_msg = "DCA received unacknowledge flag. User might not have privilege to input address.";
+
+            web_server_socket.write(JSON.stringify({ opcode: BRD_MEM_R, name: board, id: Boarddata[board].ID, return: ONFAILURE, client_id: client_id, err_msg: err_msg}));
 
         }
 
@@ -224,7 +226,25 @@ BoardNames.forEach(function(board){
         if (buffer[0] == MEM_W_UACK){
             console.log('\x1b[32mProxy Packet\x1b[0m -> From %s: Memory write unacknowledge received.\n', board);
 
-            web_server_socket.write(JSON.stringify({ opcode: BRD_MEM_W, name: board, id: Boarddata[board].ID, return: ONFAILURE, client_id: client_id}));
+            var err_msg = "DCA received unacknowledge flag. User might not have privilege to input address.";
+
+            web_server_socket.write(JSON.stringify({ opcode: BRD_MEM_W, name: board, id: Boarddata[board].ID, return: ONFAILURE, client_id: client_id, err_msg: err_msg}));
+
+        }
+
+        if (buffer[0] == THR_ACK){
+            console.log('\x1b[32mProxy Packet\x1b[0m -> From %s: Set threshold acknowledge received.\n', board);
+
+            web_server_socket.write(JSON.stringify({ opcode: BRD_THR, name: board, id: Boarddata[board].ID, return: ONSUCCESS, client_id: client_id}));
+
+        }
+
+        if (buffer[0] == THR_UACK){
+            console.log('\x1b[32mProxy Packet\x1b[0m -> From %s: Set threshold unacknowledge received.\n', board);
+
+            var err_msg = "DCA received unacknowledge flag. Check your input.";
+
+            web_server_socket.write(JSON.stringify({ opcode: BRD_THR, name: board, id: Boarddata[board].ID, return: ONFAILURE, client_id: client_id, err_msg: err_msg}));
 
         }
     });
@@ -233,8 +253,8 @@ BoardNames.forEach(function(board){
 
     MongoClient.connect(db_url, { useNewUrlParser: true }, async function(err, db){
         if (err) {
-            console.log(err);
             console.log("\x1b[31mDatabase Error:\x1b[0m -> Database is offline.");
+            console.log(err);
             return;
         }
         // console.log("\x1b[35mDCA Setup\x1b[0m -> Database connected.");
@@ -385,6 +405,36 @@ const commandServer = net.createServer(function(socket){
             console.log('DCA: Send packet:');
             console.log(buffer);
 
+            proxy[name].write(buffer);
+        }
+
+        if(packet.opcode === BRD_THR) {
+            var name = packet.param1;
+            var id = packet.param2;
+            var threshold = packet.param3;
+            console.log('\x1b[33mCommandServer\x1b[0m -> Set Reset Threshold Command on board: %s(%d). Threshold value: %d.', name, id, threshold);
+
+            if (!(name in Boarddata)) {
+                socket.write(JSON.stringify({ opcode: BRD_THR, name: name, id: id, return: ONFAILURE, err_msg: 'Board ' + name + ' is not in track list.', client_id: client_id}));
+                return;
+            }
+    
+            if (Boarddata[name].ID !==id) {
+                socket.write(JSON.stringify({ opcode: BRD_THR, name: name, id: id, return: ONFAILURE, err_msg: 'Board ' + id + ' is not in record.', client_id: client_id}));
+                return;
+            }
+                
+            if (name in unconnected) {
+                socket.write(JSON.stringify({ opcode: BRD_THR, name: name, id: id, return: ONFAILURE, err_msg: 'Board ' + name + ' is offline.', client_id: client_id}));
+                return;
+            }
+
+            var buffer = Buffer.alloc(12);
+            buffer.write(client_id, 0, 4, 'hex');
+            buffer.writeUInt32LE(THR_CMD,4);
+            buffer.writeUInt32LE(threshold,8);
+            console.log('DCA: Send packet:');
+            console.log(buffer);
             proxy[name].write(buffer);
         }
     });
