@@ -37,12 +37,13 @@ const server = net.createServer(function(socket){
     console.log('\x1b[31mSimulated Board\x1b[0m -> DCA has awaken!');
     socket.on('data', function(data) {
         var buffer = Buffer.from(data);
+        buffer = buffer.slice(4);
         if (buffer[0] == REQ_TEMP){
             console.log('\x1b[31mSimulated Board\x1b[0m -> Receive temperature request. Send temp: '+ temp +' back.');
-            var translated_temp = (temp + 273.6777) / 501.3743 * 1024;
-            const respose = Buffer.alloc(8);
-            respose.writeUInt16LE("0x2",0);
-            respose.writeUInt16LE(translated_temp,4);
+            var translated_temp = (temp + 273.15) / 503.975 * 4096;
+            const respose = Buffer.alloc(12);
+            respose.writeUInt16LE("0x2",4);
+            respose.writeUInt16LE(translated_temp,8);
             socket.write(respose);
             temp += variance;
             if (temp < 60 || temp > 90) variance *= -1;

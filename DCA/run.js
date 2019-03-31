@@ -84,7 +84,8 @@ BoardNames.forEach(function(board){
 
     // console.log(Boarddata[board].IP +'/'+Boarddata[board].port);
     // First Connection
-    proxy[board].connect(Boarddata[board].port, Boarddata[board].IP, function(err){
+
+    proxy[board].on('connect', function(err){
         if (err) { 
             console.log(err);
             return;
@@ -249,6 +250,8 @@ BoardNames.forEach(function(board){
         }
     });
 
+    proxy[board].connect(Boarddata[board].port, Boarddata[board].IP);
+
     // DB check
 
     MongoClient.connect(db_url, { useNewUrlParser: true }, async function(err, db){
@@ -280,8 +283,8 @@ BoardNames.forEach(function(board){
 setInterval(() => {
     for (board in unconnected) {
         console.log("Reconnecting :" + board);
-        proxy[board].connect(Boarddata[board].port, Boarddata[board].IP);
         delete unconnected[board];
+        proxy[board].connect(Boarddata[board].port, Boarddata[board].IP);
     }
 }, 15000);
 
