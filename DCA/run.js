@@ -106,6 +106,7 @@ BoardNames.forEach(function(board){
     // Event Handler
     proxy[board].on('timeout', () => {
         console.log('\x1b[31mProxy Error\x1b[0m -> Board ' + board + ' timeout and is disconnecting.');
+        unconnected[board] = 1;
         proxy[board].end();
     });
 
@@ -117,11 +118,11 @@ BoardNames.forEach(function(board){
 
     proxy[board].on('end', () => {
         console.log('\x1b[31mProxy Error\x1b[0m -> Board ' + board + ' connection has ended.');
-        // unconnected[board] = 1;
     });
 
     proxy[board].on('error',(res) =>{
         console.log('\x1b[31mProxy Error\x1b[0m -> Board ' + board + ' connection met error. Error Code: ' + res.code);
+        unconnected[board] = 1;
     });
 
     proxy[board].on('data', (data) => {

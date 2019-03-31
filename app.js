@@ -286,6 +286,7 @@ commandProxy.on('connect', function(err){
 
 commandProxy.on('error',(res) =>{
     console.log('\x1b[31mDCA Client:\x1b[0m Error on DCA connection: ' + res.address + '/' + res.port + '. Error Code: ' + res.code);
+    DCAStatus = 0;
 });
 
 commandProxy.on('close', () => {

@@ -12,6 +12,20 @@ $(function (){
 		var temp = '#temperatureval' + data.id.toString();
 		var statusstring = 'online';
 
+		// Page pop up alert
+		if (data.temperature > Global.warningCap) {
+			if (!Global.alertTimer) {
+				console.log("page alert logic triggered.");
+				alert("Warning: Latest Value Beyond " + Global.warningCap.toString() + " at board " + Global.activeTab + " !");
+				Global.alertTimer = setInterval(() => {
+					alert("Warning: Latest Value Beyond " + Global.warningCap.toString() + " at board " + Global.activeTab + " !");
+				}, 30000); // 30s
+			}
+		} else {
+			clearInterval(Global.alertTimer);
+			Global.alertTimer = undefined;
+		}
+		
 		var data_len = Global.configs[data.id].data.datasets[0].data.length;
 		console.log(data_len);
 		if (data_len > 0){
@@ -31,7 +45,7 @@ $(function (){
 			// console.log(current_timestamp > last_timestamp);
 			// console.log(moment(current_timestamp).isSame(last_timestamp));
 
-			// Caution: Might have bug for unforseen condition - Pure string comparsion here. 
+			// Caution: Might have bug for unforeseen condition - Pure string comparsion here. 
 			// Try moment(current_timestamp).isSame(last_timestamp)? # TODO
 			// TimeZone is ignored. See dashboard logic comment for detail.
 			if (!(current_timestamp > last_timestamp)) { 
@@ -64,19 +78,7 @@ $(function (){
 
 		window['Chart'+ data.id].update();
 
-		// Page pop up alert
-		if (data.temperature > Global.warningCap) {
-			if (!Global.alertTimer) {
-				console.log("page alert logic triggered.");
-				alert("Warning: Latest Value Beyond " + Global.warningCap.toString() + " at board " + Global.activeTab + " !");
-				Global.alertTimer = setInterval(() => {
-					alert("Warning: Latest Value Beyond " + Global.warningCap.toString() + " at board " + Global.activeTab + " !");
-				}, 30000); // 30s
-			}
-		} else {
-			clearInterval(Global.alertTimer);
-			Global.alertTimer = undefined;
-		}
+		
 	});
 	
 	socket.on('connect_error' , function(err){
@@ -168,7 +170,7 @@ $(function (){
 			}
 
 			// update chart data list
-			Global.configs[0].data.datasets[index].data = [data[item]];
+			Global.configs[0].data.datasets[index].data = [data[item][0]];
 			$(temp).text(data[item][0]);
 			$(board).text(statusstring);
 			index++;
