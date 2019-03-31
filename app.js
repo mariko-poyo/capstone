@@ -50,7 +50,7 @@ const BRD_RST = 1;
 const BRD_THR = 2;
 const BRD_MEM_R = 3;
 const BRD_MEM_W = 4;
-const DCA_ALRT_CAP = 5;
+const SET_ALRT_CAP = 5;
 
 // Client socket table
 var client_table = {};
@@ -115,7 +115,7 @@ io.on('connection', function(socket){
 
     // Receive request from client.
     socket.on('request', (ID) => {
-        console.log("\x1b[92mTemperature Update:\x1b[0m Request received from board ID:" + ID);
+        console.log("\x1b[92mTemperature Update:\x1b[0m Request received from clinet ID: %s on board id: %s.", client_id, ID);
         MongoClient.connect(url, { useNewUrlParser: true }, function(err, db){
             if (err) {
                 console.log("\x1b[34mTemperature Update:\x1b[0m Error: Occured when connecting database.");
@@ -137,7 +137,7 @@ io.on('connection', function(socket){
                 }
 
                 // console.log(result);
-                if (result.length == 0) {
+                if (result.length === 0) {
                     console.log("\x1b[31mTemperature Update:\x1b[0m Error: Database is empty for board ID:"+ID+".");
                     db.close();
                     console.log("\x1b[31mTemperature Update:\x1b[0m Database disconnected.\n");
@@ -188,11 +188,11 @@ io.on('connection', function(socket){
                         if (err) {
                             console.log("\x1b[34mio.connection:\x1b[0m Error: Occured when connecting collection.");
                             console.log(err);
-                            return;
+                            reject("DB Error");
                             // throw err;
                         }
                         // console.log(result);
-                        if (result.length == 0) {
+                        if (result.length === 0) {
                             // ret[item] = undefined;
                             ret[item] = 19;
                             console.log("\x1b[33mDashboard Update:\x1b[0m Error: Database is empty for board ID:"+id+".");
@@ -200,7 +200,7 @@ io.on('connection', function(socket){
                             ret[item] = result[0].temp;
                             // console.log("\x1b[33mDashboard Update:\x1b[0m Insert: " + "temperature - " + result[0].temp + " to ret.");
                         }
-                        resolve("Lookup end"); // should not reject.
+                        resolve("Lookup end"); 
                     });
                 });
 
@@ -253,6 +253,16 @@ io.on('connection', function(socket){
             commandProxy.write(JSON.stringify({ opcode: BRD_THR, param1: name, param2: ID, param3: threshold, client_id: client_id}));
         } else {
             socket.emit('set threshold return', {name: name, ID: ID, status: ONFAILURE, err_msg: "DCA is offline."});
+        }
+    });
+
+    // TODO: Currently frontend will not handle the return for this command.
+    socket.on('set warning cap', (name, ID, cap) => {
+        console.log("\x1b[34mUser Command:\x1b[0m Set warning cap command received from board %s: %d, cap: %d.", name, ID, cap);
+        if (DCAStatus) {
+            commandProxy.write(JSON.stringify({ opcode: SET_ALRT_CAP, param1: name, param2: ID, param3: cap, client_id: client_id }));
+        } else {
+            socket.emit('set warning cap return', { name: name, ID: ID, status: ONFAILURE, err_msg: "DCA is offline." });
         }
     });
 

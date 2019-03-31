@@ -1,13 +1,14 @@
 
 function newTimeString(seconds) {
-    return moment().add(seconds, 's').format("MMM Do YY, h:mm:ss a");
+    return moment().add(seconds, 's').format("YYYY MM DD, hh:mm:ss");
 }
 
 // Global
 var Global = {
-    warningCap: 950,
+    warningCap: 75,
     updateInterval: 2000,
-    timer: undefined,
+    alertTimer: undefined,
+    updateTimer: undefined,
     numGraphPoints: 10,
     activeTab: NaN,
     board_info: {},     // Name: {ID, IP, port}
@@ -43,29 +44,7 @@ window.onload = function() {
     var config = {
         type: 'bar',
         data: {
-            datasets: [
-            // {
-            //     label: ['Test data 1'],     // Board names update here
-            //     backgroundColor: color(window.chartColors.blue).alpha(0.8).rgbString(), 
-            //     borderColor: window.chartColors.blue,
-            //     hoverBackgroundColor: color(window.chartColors.blue).alpha(0.5).rgbString(),
-            //     hoverBorderColor: color(window.chartColors.blue).alpha(0.8).rgbString(),
-            //     borderWidth: 3,
-            //     fill: false,
-            //     data: [50]
-            // },{
-            //     label: ['Test data 2'],     // Board names update here
-            //     backgroundColor: color(window.chartColors.red).alpha(0.8).rgbString(), 
-            //     borderColor: window.chartColors.red,
-            //     hoverBackgroundColor: color(window.chartColors.red).alpha(0.5).rgbString(),
-            //     hoverBorderColor: color(window.chartColors.red).alpha(0.8).rgbString(),
-            //     borderWidth: 3,
-            //     fill: false,
-            //     data: [80]
-            // }
-            ],
-            // labels: [['Default'], ['test']]    // Board IDs update here ? TODO
-            
+            datasets: [],
         },
         options: {
             scales: {
@@ -130,34 +109,6 @@ window.onload = function() {
     Global.configs[0] = config;
 	var ctx = document.getElementById('canvas').getContext('2d');
     window.Chart0 = new Chart(ctx, Global.configs[0]);
-
-    document.getElementById('submitMaxItem').addEventListener('click', function() {
-        reading = document.getElementById("MaxItem").value;
-        Global.numGraphPoints = (reading > 2) ? reading : 2;
-    });
-
-    document.getElementById('submitInterval').addEventListener('click', function() {
-        reading = document.getElementById("Interval").value;
-        Global.updateInterval = (reading > 1000) ? reading : 1000;
-
-        // update timer
-        if (Global.timer) {
-            clearInterval(Global.timer);
-            Global.timer = setInterval(function(){
-                if (Global.activeTab && Global.activeTab !== "Overview") {
-                    socket.emit('request', Global.board_info[Global.activeTab].ID);
-                } else if (Global.activeTab === "Overview" && Object.keys(Global.tracking).length) {
-                    socket.emit('dashboard', Global.tracking);
-                }
-            },Global.updateInterval);
-        } 
-
-        // socket.emit('interval update',{ interval: Global.updateInterval, boardID: Global.activeTab});
-    });
-
-    document.getElementById('submitWarningCap').addEventListener('click', function() {
-        Global.warningCap = document.getElementById("WarningCap").value;
-    });
 };
 
 

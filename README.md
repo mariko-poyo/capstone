@@ -4,26 +4,31 @@ Monitor application for tracing client board status under Galapagos.
 Updating...
 
 **Last Commit:**
-* Memory operations are now generally working. Functionalities are fully implemented for backend.
-* Set suggestedMax/Min from 40 to 75 for y-axis in board chart.
-* Fixed some of the terminal output format. Reduced log.
-
-**Current Commit:**
 * Finished protocol for setThreshold.
 * Improved logic for multiple clients.
 * Implemented more error checking and simplified current terminal output.
 
+**Current Commit:**
+* Improved alert event logic. Now email event will be trigger once per overheated event, 
+page pop up event will happen every 30 sec.
+* Separated button functions from ./public/javascript/socket.js to a new file: ./public/javascript/Button.js 
+* Fixed bug on sorting database timestamp. Now timestamp format is YYYY MM DD, hh:mm:ss.
+* Implemented protocol and function for setting email alert cap value.
+* Removed useless files and comments.
 
 **TODO:**
+* Complete command log logic
+* Time chart and dashboard should handle offline events
+* History page design
+* **Improve CSS**
 * ~Memory operation interface on frontend.~ Improve for long read/write memory operations.
-* Complete command log logic.
-* History page design.
-* Time chart and dashboard should handle offline events.
 * Find a way better than using alert for warning messages.
 * Implement more error checking.
-* Remove tracking board button in control panel.
-* Simplify current terminal output.
-* **Improve CSS**
+* Remove tracking board button in control panel
+* Cookies for current setting saving
+* Output error log to log file
+* Simplify current terminal output
+
 
 #### Opened Issues:
 * Cannot edit properties of x-axies ticks. Need to reformat time, limit range for first 10 values, and larger font size.
@@ -49,4 +54,6 @@ app.js and default 3000 port in ./bin/www to some other ports and the problem sh
 **Setup Checklist**
 * Uncomment reconnect logic
 * Enable reset command
-* Check DCA routine interval to be 1s
+* Check DCA run.js - temperature routine interval to be 1s
+* Check socket.js - socket.io server address to external IP
+* Check DCA run.js - Mail alert receiver(s)
