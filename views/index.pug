@@ -92,12 +92,13 @@ block content
                 button(type="button",onclick='addBoardFunc()') Add Board
                 table#monitoringtable
                     tr
-                        th board#
+                        th board name
                         th status
                         th temperature
                     tr
     
     div(class="note")
-        p Note: Moment.js is based on current system time, and now the graph unit is second. So range may vary greatly if you add/generate data after a period of time
+        h3 Note: Moment.js generates timestamps on current client system time. So some logic will fail if client has different timezone from server.
+        h3 Server side timezone: EDT/EST, Toronto
 
 

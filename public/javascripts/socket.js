@@ -8,9 +8,40 @@ $(function (){
     socket.on('temperature update', function(data) {
 		console.log("Updating Canvas: " + Global.activeTab);
 
-        var statusstring = 'online';
-        var temp = '#temperatureval' + data.id.toString();
-        var board = '#boardstatus' + data.id.toString();
+		var board = '#boardstatus' + data.id.toString();
+		var temp = '#temperatureval' + data.id.toString();
+		var statusstring = 'online';
+
+		var data_len = Global.configs[data.id].data.datasets[0].data.length;
+		console.log(data_len);
+		if (data_len > 0){
+			var last_timestamp = Global.configs[data.id].data.datasets[0].data[data_len - 1].x;
+			var current_timestamp = moment(data.time, "YYYY MM DD, hh:mm:ss").format();
+
+			// console.log("raw string:");
+			// console.log(last_timestamp);
+			// console.log(current_timestamp);
+			// console.log("moment return:");
+			// console.log(moment(last_timestamp));
+			// console.log(moment(current_timestamp));
+			// console.log("comparision:");
+			// console.log(moment(current_timestamp) == moment(last_timestamp));
+			// console.log(moment(current_timestamp) > moment(last_timestamp));
+			// console.log(current_timestamp == last_timestamp);
+			// console.log(current_timestamp > last_timestamp);
+			// console.log(moment(current_timestamp).isSame(last_timestamp));
+
+			// Caution: Might have bug for unforseen condition - Pure string comparsion here. 
+			// Try moment(current_timestamp).isSame(last_timestamp)? # TODO
+			// TimeZone is ignored. See dashboard logic comment for detail.
+			if (!(current_timestamp > last_timestamp)) { 
+				console.log("offline logic");
+				statusstring = 'offline';
+				$(board).text(statusstring);
+				return;
+			}
+		}
+
         $(temp).text(data.temperature);
         $(board).text(statusstring);
 
@@ -22,9 +53,9 @@ $(function (){
 		}
 		
 		// TODO: check data.time
-		var current = newTimeString(0);
-		console.log("On Update: Actual source time = "+ data.time + ", current time = " + current);
-		console.log("data.time type: "+ typeof(data.time) + ", current type: " + typeof(current));
+		// var current = newTimeString(0);
+		// console.log("On Update: Actual source time = "+ data.time + ", current time = " + current);
+		// console.log("data.time type: "+ typeof(data.time) + ", current type: " + typeof(current));
 
 		Global.configs[data.id].data.datasets[0].data.push({
 			x: moment(data.time, "YYYY MM DD, hh:mm:ss").format(), //  data.time
@@ -98,15 +129,47 @@ $(function (){
 	});
 
 	socket.on('dashboard update' , function(data){
+		// data format: {boardName : [temp, timestamp] , ...}
+		// Key [boardName] should strictly match trackingList.
 		console.log('Received package from dashboard update.')
 		console.log(data);
 		var index = 0;
+
+		var current_timestamp = newTimeString(0);
+
 		for (var item in data) {
-			Global.configs[0].data.datasets[index].data = [data[item]];
 			var statusstring = 'online';
 			var temp = '#temperatureval' + Global.board_info[item].ID;
 			var board = '#boardstatus' + Global.board_info[item].ID;
-			$(temp).text(data[item]);
+
+			if (!data[item][0]) {
+				console.log("undefined logic");
+				statusstring = 'offline';
+				$(board).text(statusstring);
+
+				index++;
+				continue;
+			}
+
+			var last_timestamp = data[item][1];
+
+			// comparision: if timestamp is more than 3 sec diff from current time 
+			// TODO: Time zone is not considered. If system time has different time zone from server side, this logic will certainly fail.
+			// May have to parseZone(). But at this moment we don't take this issue seriously.
+			// Also, timestamp_diff may overflow for a really long time gap. 
+			var timestamp_diff = moment(current_timestamp, "YYYY MM DD, hh:mm:ss").diff(moment(last_timestamp, "YYYY MM DD, hh:mm:ss"), 'seconds');
+			if (timestamp_diff > 3) {
+				console.log("offline logic");
+				statusstring = 'offline';
+				$(board).text(statusstring);
+
+				index++;
+				continue;
+			}
+
+			// update chart data list
+			Global.configs[0].data.datasets[index].data = [data[item]];
+			$(temp).text(data[item][0]);
 			$(board).text(statusstring);
 			index++;
 		}

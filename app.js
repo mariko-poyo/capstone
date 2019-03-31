@@ -193,11 +193,11 @@ io.on('connection', function(socket){
                         }
                         // console.log(result);
                         if (result.length === 0) {
-                            // ret[item] = undefined;
-                            ret[item] = 19;
+                            // ret[item] = undefined; // Checklist
+                            ret[item] = [undefined, undefined];
                             console.log("\x1b[33mDashboard Update:\x1b[0m Error: Database is empty for board ID:"+id+".");
                         } else {
-                            ret[item] = result[0].temp;
+                            ret[item] = [result[0].temp, result[0].time];
                             // console.log("\x1b[33mDashboard Update:\x1b[0m Insert: " + "temperature - " + result[0].temp + " to ret.");
                         }
                         resolve("Lookup end"); 

@@ -15,10 +15,11 @@ page pop up event will happen every 30 sec.
 * Fixed bug on sorting database timestamp. Now timestamp format is YYYY MM DD, hh:mm:ss.
 * Implemented protocol and function for setting email alert cap value.
 * Removed useless files and comments.
+* Implemented offline check for board table and overview/board chart.
 
 **TODO:**
 * Complete command log logic
-* Time chart and dashboard should handle offline events
+* ~Time chart and dashboard should handle offline events~
 * History page design
 * **Improve CSS**
 * ~Memory operation interface on frontend.~ Improve for long read/write memory operations.
@@ -52,8 +53,8 @@ app.js and default 3000 port in ./bin/www to some other ports and the problem sh
 ```
 
 **Setup Checklist**
-* Uncomment reconnect logic
-* Enable reset command
+* Uncomment reconnect logic in DCA 
+* Enable reset command in DCA
 * Check DCA run.js - temperature routine interval to be 1s
 * Check socket.js - socket.io server address to external IP
 * Check DCA run.js - Mail alert receiver(s)

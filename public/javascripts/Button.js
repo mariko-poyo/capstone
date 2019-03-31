@@ -22,7 +22,7 @@ function addBoardFunc() {
                 pointBackgroundColor: 'rgb(150, 180, 235)',
                 pointBorderColor: 'rgb(150, 180, 235)',
                 fill: false,
-                data: [{}],
+                data: [],
             }]
         },
         options: {
