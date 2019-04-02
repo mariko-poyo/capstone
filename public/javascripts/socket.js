@@ -30,7 +30,7 @@ $(function (){
 		console.log(data_len);
 		if (data_len > 0){
 			var last_timestamp = Global.configs[data.id].data.datasets[0].data[data_len - 1].x;
-			var current_timestamp = moment(data.time, "YYYY MM DD, hh:mm:ss").format();
+			var current_timestamp = moment(data.time, "YYYY MM DD, HH:mm:ss").format();
 
 			// console.log("raw string:");
 			// console.log(last_timestamp);
@@ -52,6 +52,7 @@ $(function (){
 				console.log("offline logic");
 				statusstring = 'offline';
 				$(board).text(statusstring);
+				$(temp).text("");
 				return;
 			}
 		}
@@ -72,7 +73,7 @@ $(function (){
 		// console.log("data.time type: "+ typeof(data.time) + ", current type: " + typeof(current));
 
 		Global.configs[data.id].data.datasets[0].data.push({
-			x: moment(data.time, "YYYY MM DD, hh:mm:ss").format(), //  data.time
+			x: moment(data.time, "YYYY MM DD, HH:mm:ss").format(), //  data.time
         	y: data.temperature
     	});
 
@@ -159,12 +160,14 @@ $(function (){
 			// TODO: Time zone is not considered. If system time has different time zone from server side, this logic will certainly fail.
 			// May have to parseZone(). But at this moment we don't take this issue seriously.
 			// Also, timestamp_diff may overflow for a really long time gap. 
-			var timestamp_diff = moment(current_timestamp, "YYYY MM DD, hh:mm:ss").diff(moment(last_timestamp, "YYYY MM DD, hh:mm:ss"), 'seconds');
+			var timestamp_diff = moment(current_timestamp, "YYYY MM DD, HH:mm:ss").diff(moment(last_timestamp, "YYYY MM DD, HH:mm:ss"), 'seconds');
+			console.log(timestamp_diff);
+			console.log(current_timestamp);
 			if (timestamp_diff > 3) {
 				console.log("offline logic");
 				statusstring = 'offline';
 				$(board).text(statusstring);
-
+				$(temp).text("");
 				index++;
 				continue;
 			}

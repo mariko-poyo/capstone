@@ -140,7 +140,7 @@ BoardNames.forEach(function(board){
             // console.log(buffer.readInt32LE(4));
             var converted_temp = buffer.readInt32LE(4) * 503.975 / 4096 - 273.15;
             console.log('\x1b[32mProxy Packet\x1b[0m -> From board %s: Temperature received : %f.', board, converted_temp);
-            var timeStamp = moment().format("YYYY MM DD, hh:mm:ss");
+            var timeStamp = moment().format("YYYY MM DD, HH:mm:ss");
             var obj = { temp: converted_temp, time: timeStamp };
 
             // If overheated, trigger alert mail.
