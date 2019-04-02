@@ -1,0 +1,205 @@
+body {
+    padding: 10px 50px 10px 50px;
+    font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+    background: url('../img/bg.png') center;
+    color: #fff;
+}
+
+/*Navigation Bar Start*/
+
+.nabi_bar {
+    background: inherit;
+  }
+
+.nabi_bar ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    list-style: none;
+    overflow: hidden;
+    background-color: inherit;
+}
+
+.nabi_bar a {
+    padding: 1.25rem 0.5rem;
+    font-size: 1.5rem;
+    max-width: 140px;
+    font-style: italic;
+    text-decoration: none;
+    display: flex;
+    color: #fff;
+    margin: 0 0 0 3rem;
+}
+
+.nabi_bar a:hover, .nabi_bar a:focus {
+    background: #ccc;
+    color: black;
+}
+
+.nabi_bar a:hover span, .nabi_bar a:focus span {
+    color: black;
+}
+
+.nabi_bar span {
+    display: block;
+    font-size: 1rem;
+    font-weight: normal;
+    color: #888;
+    margin: 0.25rem 0 0 0;
+}
+
+.nabi_bar li #name{
+    font-size: 25px;
+}
+
+/*Navigation Bar End*/
+
+/*Chart Start*/
+.chart {
+    /*float: left;*/
+    display: inline;
+    width: 60%;
+    padding: 10px 30px 10px 30px;
+}
+
+
+@-webkit-keyframes chartjs-render-animation {
+    from {
+        opacity: 0.99
+    }
+    to {
+        opacity: 1
+    }
+}
+
+@keyframes chartjs-render-animation {
+    from {
+        opacity: 0.99
+    }
+    to {
+        opacity: 1
+    }
+}
+
+.chartjs-render-monitor {
+    -webkit-animation: chartjs-render-animation 0.001s;
+    animation: chartjs-render-animation 0.001s;
+    display: block;
+    width: 1372px;
+    height: 686px;
+}
+
+canvas {
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+}
+
+.tab{
+    overflow: hidden;
+    border: 2px solid #ccc;
+    background-color: inherit;
+}
+
+.tab button {
+    background-color: inherit;
+    float: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 14px 16px;
+	transition: 0.3s;
+
+    display: inline-block;
+    margin: 0;
+    text-decoration: none;
+    color: #ffffff;
+    font-family: sans-serif;
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+    text-align: center;
+    transition: background 250ms ease-in-out, transform 150ms ease;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
+.tab button:hover, button:focus{
+    background-color: #333;
+}
+
+.tab button:focus {
+    outline: 1px solid #fff;
+    outline-offset: -4px;
+}
+
+.tab button.active{
+    background-color: #111;
+    transform: scale(0.99);
+    outline: 1px solid #fff;
+    outline-offset: -4px;
+}
+
+.tabcontent {
+    display: none;
+    padding: 30px 30px;
+    height: 60%;
+}
+
+/*Chart End*/
+
+/*Control Panel Start*/
+.controlPanel {
+    float: left;
+    margin-left: 30%;
+    display: inline;
+    overflow: hidden;
+    border: 2px solid #ccc;
+    background-color: inherit;
+    padding: 1rem;
+    /*margin: 0.5rem;*/
+    width: 300px;
+}
+
+.controlPanel input {
+    width: 200px;
+}
+
+.controlPanel button {
+    width: 204px;
+    background-color: inherit;
+    outline: none;
+    cursor: pointer;
+    padding: 0.2rem;
+	transition: 0.3s;
+
+    display: inline-block;
+    margin: 0;
+    text-decoration: none;
+    color: #ffffff;
+    font-family: sans-serif;
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+    text-align: center;
+    transition: background 250ms ease-in-out, transform 150ms ease;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
+/*Control Panel End*/
+
+/*Note Start*/
+.note {
+    clear: both;
+}
+
+.note p {
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+/*Note End*/
