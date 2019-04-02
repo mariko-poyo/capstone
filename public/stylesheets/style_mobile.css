@@ -59,7 +59,7 @@ body {
 
 /*Chart Start*/
 .chart {
-    /*float: left;*/
+    float: none;
     display: inline;
     width: 60%;
     padding: 10px 30px 10px 30px;
