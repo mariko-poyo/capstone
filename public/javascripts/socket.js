@@ -25,38 +25,18 @@ $(function (){
 			clearInterval(Global.alertTimer);
 			Global.alertTimer = undefined;
 		}
-		
-		var data_len = Global.configs[data.id].data.datasets[0].data.length;
-		console.log(data_len);
-		if (data_len > 0){
-			var last_timestamp = Global.configs[data.id].data.datasets[0].data[data_len - 1].x;
-			var current_timestamp = moment(data.time, "YYYY MM DD, HH:mm:ss").format();
 
-			// console.log("raw string:");
-			// console.log(last_timestamp);
-			// console.log(current_timestamp);
-			// console.log("moment return:");
-			// console.log(moment(last_timestamp));
-			// console.log(moment(current_timestamp));
-			// console.log("comparision:");
-			// console.log(moment(current_timestamp) == moment(last_timestamp));
-			// console.log(moment(current_timestamp) > moment(last_timestamp));
-			// console.log(current_timestamp == last_timestamp);
-			// console.log(current_timestamp > last_timestamp);
-			// console.log(moment(current_timestamp).isSame(last_timestamp));
-
-			// Caution: Might have bug for unforeseen condition - Pure string comparsion here. 
-			// Try moment(current_timestamp).isSame(last_timestamp)? # TODO
-			// TimeZone is ignored. See dashboard logic comment for detail.
-			if (!(current_timestamp > last_timestamp)) { 
-				console.log("offline logic");
-				statusstring = 'offline';
-				$(board).text(statusstring);
-				$(temp).text("");
-				return;
-			}
+		// Caution: Might have bug for unforeseen condition - Pure string comparsion here. 
+		// Try moment(current_timestamp).isSame(last_timestamp)? # TODO
+		// TimeZone is ignored. See dashboard logic comment for detail.
+		if(offline_logic(data.time)) {
+			console.log("offline logic");
+			statusstring = 'offline';
+			$(board).text(statusstring);
+			$(temp).text("");
+			return;
 		}
-
+		
         $(temp).text(data.temperature);
         $(board).text(statusstring);
 
@@ -138,8 +118,6 @@ $(function (){
 		console.log(data);
 		var index = 0;
 
-		var current_timestamp = newTimeString(0);
-
 		for (var item in data) {
 			var statusstring = 'online';
 			var temp = '#temperatureval' + Global.board_info[item].ID;
@@ -160,10 +138,7 @@ $(function (){
 			// TODO: Time zone is not considered. If system time has different time zone from server side, this logic will certainly fail.
 			// May have to parseZone(). But at this moment we don't take this issue seriously.
 			// Also, timestamp_diff may overflow for a really long time gap. 
-			var timestamp_diff = moment(current_timestamp, "YYYY MM DD, HH:mm:ss").diff(moment(last_timestamp, "YYYY MM DD, HH:mm:ss"), 'seconds');
-			console.log(timestamp_diff);
-			console.log(current_timestamp);
-			if (timestamp_diff > 3) {
+			if (offline_logic(last_timestamp)) {
 				console.log("offline logic");
 				statusstring = 'offline';
 				$(board).text(statusstring);
@@ -210,3 +185,9 @@ socket.on('disconnect', (reason) => {
 		socket.connect();
 	}
 });
+
+function offline_logic(last_timestamp) {
+	var current_timestamp = newTimeString(0);
+	var timestamp_diff = moment(current_timestamp, "YYYY MM DD, HH:mm:ss").diff(moment(last_timestamp, "YYYY MM DD, HH:mm:ss"), 'seconds');
+	return timestamp_diff > 3;
+}

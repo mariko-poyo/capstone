@@ -90,6 +90,9 @@ BoardNames.forEach(function(board){
             console.log(err);
             return;
         }
+
+        if (board in unconnected)
+            delete unconnected[board];
             
         console.log('\x1b[32mProxy Connect\x1b[0m -> Board ' + board + ' Connection Setup on '+ Boarddata[board].IP +'/'+Boarddata[board].port+'.');
 
