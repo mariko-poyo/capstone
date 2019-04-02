@@ -341,6 +341,8 @@ const commandServer = net.createServer(function(socket){
             console.log(buffer);
             proxy[name].write(buffer);
 
+            proxy[name].end(); // Checklist: Container Limited Ver.
+
             socket.write(JSON.stringify({ opcode: BRD_RST, name: name, id: id, return: ONSUCCESS, client_id: client_id}));
         }
 
