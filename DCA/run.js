@@ -71,10 +71,38 @@ var mailOptions = {
     subject: 'Temperature Warning From Galapagos Monitor System'
 };
 
+// =============================== Setup Start ==================================
 
-// =============================== Setup End ==================================
+// DB Setup
+// MongoClient.connect(db_url, { useNewUrlParser: true }, async function (err, db) {
+//     if (err) {
+//         console.log("\x1b[31mDatabase Error:\x1b[0m -> Database is offline.");
+//         console.log(err);
+//         return;
+//     }
+//     // console.log("\x1b[35mDCA Setup\x1b[0m -> Database connected.");
 
-// proxy and db setup
+//     var temperature = db.db("temperature");
+//     var history = db.db("history");
+
+//     history.createCollection("general", function (err, res) {
+//         if (err) throw err;
+//         // console.log("\x1b[35mDCA Setup\x1b[0m -> Collection "+board_id.toString()+" created under History.");
+//     });
+
+//     BoardNames.forEach(function (board) {
+//         var board_id = Boarddata[board].ID;
+//         temperature.createCollection(board_id.toString(), function (err, res) {
+//             if (err) throw err;
+//         });
+
+//         history.createCollection(board_id.toString(), function (err, res) {
+//             if (err) throw err;
+//         });
+//     });
+// });
+
+// Proxy 
 BoardNames.forEach(function(board){
     // console.log(board);
     var board_id = Boarddata[board].ID;
@@ -165,31 +193,8 @@ BoardNames.forEach(function(board){
                 }
             } else email_event_flag[board] = 0;
             
-            // Connect Database
-            MongoClient.connect(db_url, { useNewUrlParser: true }, function(err, db){
-                if (err) {
-                    console.log("\x1b[31mProcess:\x1b[0m Error: Occured when connecting database.\n");
-                    console.log(err);
-                    return;
-                    // throw err;
-                }
-                // console.log("\x1b[34mProcess\x1b[0m -> Database connected.");
-
-                var temperature = db.db("temperature");
-
-                temperature.collection(board_id.toString()).insertOne(obj, function(err, res) {
-                    if (err) {
-                        console.log("\x1b[31mProcess:\x1b[0m Error: Occured when connecting collection %d.\n", board_id);
-                        console.log(err);
-                        return;
-                        // throw err;
-                    }
-                    console.log("\x1b[34mProcess\x1b[0m -> Record: temp: %f, time: %s has added to Temperaure database under collection %d.\n", obj.temp, obj.time, board_id);
-                });
-                
-                db.close();
-                // console.log("\x1b[34mProcess\x1b[0m -> Database disconnected.");
-            });
+            // Add temperature to db
+            dbWrite("temperature", board_id.toString(), obj);
         }
     
         if (buffer[0] == MEM_R_ACK){
@@ -262,34 +267,12 @@ BoardNames.forEach(function(board){
         }
     });
 
+    // TODO: may have timing issue: What if DB Setup is not done before this line?
     proxy[board].connect(Boarddata[board].port, Boarddata[board].IP);
 
-    // DB check
-
-    MongoClient.connect(db_url, { useNewUrlParser: true }, async function(err, db){
-        if (err) {
-            console.log("\x1b[31mDatabase Error:\x1b[0m -> Database is offline.");
-            console.log(err);
-            return;
-        }
-        // console.log("\x1b[35mDCA Setup\x1b[0m -> Database connected.");
-
-        var temperature = db.db("temperature");
-        temperature.createCollection(board_id.toString(), function(err, res) {
-            if (err) throw err;
-            // console.log("\x1b[35mDCA Setup\x1b[0m -> Collection "+board_id.toString()+" created under Temperature.");
-        });
-
-        var history = db.db("history");
-
-        await history.createCollection(board_id.toString(), function(err, res) {
-            if (err) throw err;
-            // console.log("\x1b[35mDCA Setup\x1b[0m -> Collection "+board_id.toString()+" created under History.");
-            db.close();
-        }); 
-    });
-
 });
+
+// =============================== Setup End ==================================
 
 // Check for unconnected proxies. Will recall connect every 15 secs // Checklist: uncomment this when beta test
 setInterval(() => {
@@ -314,25 +297,37 @@ const commandServer = net.createServer(function(socket){
         var client_id = packet.client_id;
         // console.log(packet);
 
+        var timeStamp = moment().format("YYYY MM DD, HH:mm:ss");
+
         if(packet.opcode === BRD_RST) {
             var name = packet.param1;
             var id = packet.param2;
             console.log('\x1b[33mCommandServer\x1b[0m -> Reset Command on board: %s(%d).', name, id);
 
-            if (!(name in Boarddata)) {
-                socket.write(JSON.stringify({ opcode: BRD_RST, name: name, id: id, return: ONFAILURE, err_msg: 'Board ' + name + ' is not in track list.', client_id: client_id}));
+            var err_msg = checkInvalidCommand(name, id);
+            if (err_msg) {
+                socket.write(JSON.stringify({ opcode: BRD_RST, name: name, id: id, return: ONFAILURE, err_msg: err_msg, client_id: client_id }));
                 return;
             }
+
+            // TODO: from ip address is better? Take a look how to get ip from socket
+            var log = { opcode: BRD_RST, board_name: name, board_id: id, from: client_id, time: timeStamp };
+            dbWrite('history', 'general', log);
+
+            // if (!(name in Boarddata)) {
+            //     socket.write(JSON.stringify({ opcode: BRD_RST, name: name, id: id, return: ONFAILURE, err_msg: 'Board ' + name + ' is not in track list.', client_id: client_id}));
+            //     return;
+            // }
     
-            if (Boarddata[name].ID !==id) {
-                socket.write(JSON.stringify({ opcode: BRD_RST, name: name, id: id, return: ONFAILURE, err_msg: 'Board ' + id + ' is not in record.', client_id: client_id}));
-                return;
-            }
+            // if (Boarddata[name].ID !==id) {
+            //     socket.write(JSON.stringify({ opcode: BRD_RST, name: name, id: id, return: ONFAILURE, err_msg: 'Board ' + id + ' is not in record.', client_id: client_id}));
+            //     return;
+            // }
                 
-            if (name in unconnected) {
-                socket.write(JSON.stringify({ opcode: BRD_RST, name: name, id: id, return: ONFAILURE, err_msg: 'Board ' + name + ' is offline.', client_id: client_id}));
-                return;
-            }
+            // if (name in unconnected) {
+            //     socket.write(JSON.stringify({ opcode: BRD_RST, name: name, id: id, return: ONFAILURE, err_msg: 'Board ' + name + ' is offline.', client_id: client_id}));
+            //     return;
+            // }
 
             var buffer = Buffer.alloc(8);
             buffer.write(client_id, 0, 4, 'hex');
@@ -341,7 +336,7 @@ const commandServer = net.createServer(function(socket){
             console.log(buffer);
             proxy[name].write(buffer);
 
-            proxy[name].end(); // Checklist: Container Limited Ver.
+            // proxy[name].end(); // Checklist: Container Limited Ver.
 
             socket.write(JSON.stringify({ opcode: BRD_RST, name: name, id: id, return: ONSUCCESS, client_id: client_id}));
         }
@@ -353,23 +348,15 @@ const commandServer = net.createServer(function(socket){
             var byte = packet.param4;
             console.log('\x1b[33mCommandServer\x1b[0m -> Memory Read Command on board: %s(%d) at %s for %d bytes', name, id, address, byte);
 
-            if (!(name in Boarddata)) {
-                socket.write(JSON.stringify({ opcode: BRD_MEM_R, name: name, id: id, return: ONFAILURE, err_msg: 'Board ' + name + ' is not in track list.', client_id: client_id}));
+            var err_msg = checkInvalidCommand(name, id);
+            if (err_msg) {
+                socket.write(JSON.stringify({ opcode: BRD_MEM_R, name: name, id: id, return: ONFAILURE, err_msg: err_msg, client_id: client_id }));
                 return;
             }
-    
-            if (Boarddata[name].ID !==id) {
-                socket.write(JSON.stringify({ opcode: BRD_MEM_R, name: name, id: id, return: ONFAILURE, err_msg: 'Board id:' + id + ' is not in record.', client_id: client_id}));
-                return;
-            }
-                
-            if (name in unconnected) {
-                socket.write(JSON.stringify({ opcode: BRD_MEM_R, name: name, id: id, return: ONFAILURE, err_msg: 'Board ' + name + ' is offline.', client_id: client_id}));
-                return;
-            }
-
             // socket.write(JSON.stringify({ opcode: BRD_MEM_R, name: name, id: id, return: ONSUCCESS, address: address, byte: byte, content: "DEADBEEF"}));
-    
+            var log = { opcode: BRD_RST, board_name: name, board_id: id, from: client_id, time: timeStamp, address: address, byte: byte };
+            dbWrite('history', 'general', log);
+
             var buffer = Buffer.alloc(16);
             buffer.write(client_id, 0, 4, 'hex');
             buffer.writeUInt32LE(MEM_R,4)
@@ -389,23 +376,15 @@ const commandServer = net.createServer(function(socket){
             var value = packet.param5;
             console.log('\x1b[33mCommandServer\x1b[0m -> Memory Write Command on board: %s(%d) at %s for %d bytes. Value: %s.', name, id, address, byte, value);
 
-            if (!(name in Boarddata)) {
-                socket.write(JSON.stringify({ opcode: BRD_MEM_W, name: name, id: id, return: ONFAILURE, err_msg: 'Board ' + name + ' is not in track list.', client_id: client_id}));
+            var err_msg = checkInvalidCommand(name, id);
+            if (err_msg) {
+                socket.write(JSON.stringify({ opcode: BRD_MEM_W, name: name, id: id, return: ONFAILURE, err_msg: err_msg, client_id: client_id }));
                 return;
             }
-    
-            if (Boarddata[name].ID !==id) {
-                socket.write(JSON.stringify({ opcode: BRD_MEM_W, name: name, id: id, return: ONFAILURE, err_msg: 'Board id:' + id + ' is not in record.', client_id: client_id}));
-                return;
-            }
-                
-            if (name in unconnected) {
-                socket.write(JSON.stringify({ opcode: BRD_MEM_W, name: name, id: id, return: ONFAILURE, err_msg: 'Board ' + name + ' is offline.', client_id: client_id}));
-                return;
-            }
-
             // socket.write(JSON.stringify({ opcode: BRD_MEM_W, name: name, id: id, return: ONSUCCESS, address: address, byte: byte, content: "DEADBEEF"}));
-            
+            var log = { opcode: BRD_RST, board_name: name, board_id: id, from: client_id, time: timeStamp, address: address, byte: byte, value: value };
+            dbWrite('history', 'general', log);
+
             var buffer_len = byte + 16;
 
             var buffer = Buffer.alloc(buffer_len);
@@ -431,20 +410,14 @@ const commandServer = net.createServer(function(socket){
             var threshold = packet.param3;
             console.log('\x1b[33mCommandServer\x1b[0m -> Set Reset Threshold Command on board: %s(%d). Threshold value: %d.', name, id, threshold);
 
-            if (!(name in Boarddata)) {
-                socket.write(JSON.stringify({ opcode: BRD_THR, name: name, id: id, return: ONFAILURE, err_msg: 'Board ' + name + ' is not in track list.', client_id: client_id}));
+            var err_msg = checkInvalidCommand(name, id);
+            if (err_msg) {
+                socket.write(JSON.stringify({ opcode: BRD_THR, name: name, id: id, return: ONFAILURE, err_msg: err_msg, client_id: client_id }));
                 return;
             }
-    
-            if (Boarddata[name].ID !==id) {
-                socket.write(JSON.stringify({ opcode: BRD_THR, name: name, id: id, return: ONFAILURE, err_msg: 'Board ' + id + ' is not in record.', client_id: client_id}));
-                return;
-            }
-                
-            if (name in unconnected) {
-                socket.write(JSON.stringify({ opcode: BRD_THR, name: name, id: id, return: ONFAILURE, err_msg: 'Board ' + name + ' is offline.', client_id: client_id}));
-                return;
-            }
+
+            var log = { opcode: BRD_RST, board_name: name, board_id: id, from: client_id, time: timeStamp, threshold: threshold };
+            dbWrite('history', 'general', log);
 
             var buffer = Buffer.alloc(12);
             buffer.write(client_id, 0, 4, 'hex');
@@ -462,22 +435,15 @@ const commandServer = net.createServer(function(socket){
             var cap = packet.param3;
             console.log('\x1b[33mCommandServer\x1b[0m -> Set Warning Cap Command on board: %s(%d). Cap value: %d.', name, id, cap);
 
-            if (!(name in Boarddata)) {
-                socket.write(JSON.stringify({ opcode: BRD_THR, name: name, id: id, return: ONFAILURE, err_msg: 'Board ' + name + ' is not in track list.', client_id: client_id }));
-                return;
-            }
-
-            if (Boarddata[name].ID !== id) {
-                socket.write(JSON.stringify({ opcode: BRD_THR, name: name, id: id, return: ONFAILURE, err_msg: 'Board ' + id + ' is not in record.', client_id: client_id }));
-                return;
-            }
-
-            if (name in unconnected) {
-                socket.write(JSON.stringify({ opcode: BRD_THR, name: name, id: id, return: ONFAILURE, err_msg: 'Board ' + name + ' is offline.', client_id: client_id }));
+            var err_msg = checkInvalidCommand(name, id);
+            if (err_msg) {
+                socket.write(JSON.stringify({ opcode: SET_ALRT_CAP, name: name, id: id, return: ONFAILURE, err_msg: err_msg, client_id: client_id }));
                 return;
             }
 
             email_cap = (cap > 50) ? cap : 50;
+            var log = { opcode: SET_ALRT_CAP, board_name: name, board_id: id, from: client_id, time: timeStamp, alert_cap: cap };
+            dbWrite('history', 'general', log);
         }
     });
 
@@ -492,3 +458,48 @@ const commandServer = net.createServer(function(socket){
 });
 
 commandServer.listen(8013, '127.0.0.1');
+
+
+function dbWrite(dbName, collection, obj){
+    // Connect Database
+    MongoClient.connect(db_url, { useNewUrlParser: true }, function (err, db) {
+        if (err) {
+            console.log("\x1b[31mProcess:\x1b[0m Error: Occured when connecting database.\n");
+            console.log(err);
+            return;
+        }
+        // console.log("\x1b[34mProcess\x1b[0m -> Database connected.");
+
+        var DB = db.db(dbName); // TODO: invalid input checking
+
+        DB.collection(collection).insertOne(obj, function (err, res) {
+            if (err) {
+                console.log("\x1b[31mProcess:\x1b[0m Error: Occured when connecting collection %s under db %s.\n", collection, dbName);
+                console.log(err);
+                return;
+                // throw err;
+            }
+            console.log("\x1b[34mProcess\x1b[0m -> Record: %s has added to collection %d under %s database.\n", JSON.stringify(obj), collection, dbName);
+        });
+
+        db.close();
+        // console.log("\x1b[34mProcess\x1b[0m -> Database disconnected.");
+    });
+}
+
+function checkInvalidCommand(name, id) {
+    var err_msg = undefined;
+    if (!(name in Boarddata)) {
+        err_msg = 'Board ' + name + ' is not in track list.';
+    }
+
+    if (Boarddata[name].ID !== id) {
+        err_msg = 'Board ' + id + ' is not in record.';
+    }
+
+    if (name in unconnected) {
+        err_msg = 'Board ' + name + ' is offline.';
+    }
+
+    return err_msg;
+}

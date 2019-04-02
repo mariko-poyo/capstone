@@ -1,4 +1,27 @@
 extends layout
 
 block content
-    
+    script(src='/static/History.js')
+
+    nav(role = 'navigation', class='nabi_bar', id='nabi_bar')
+        ul(class="nabi_bar_list")
+            li
+                h1(id="name") 
+                    div #{title}
+                        span Welcome to #{title}
+            li 
+                a(href='/')
+                    div Dashboard
+                        span Current status
+            li 
+                a(href='/history')
+                    div History
+                        span Command/Values
+            li 
+                a(href='mailto:GalapagosMonitor@gmail.com')
+                    div Contact
+                        span Administrator
+    block text 
+        h1 This page is currently under construction
+        h3 Recent 20 records in history.general:
+        p#print

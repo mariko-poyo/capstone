@@ -4,7 +4,7 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const indexRouter = require('./routes/index');
-const usersRouter = require('./routes/users');
+const historyRouter = require('./routes/history')
 
 const fs = require('fs');
 var hash = require('object-hash');
@@ -55,8 +55,6 @@ const SET_ALRT_CAP = 5;
 // Client socket table
 var client_table = {};
 
-
-
 // Setup http handler
 app.get('/getBoards',function(req,res){
     console.log("Received http request: GetBoardInfo.");
@@ -66,8 +64,26 @@ app.get('/getBoards',function(req,res){
 
 app.get('/getHistory',function(req,res){
     console.log("Receive http request: GetRecentHistory.");
-    res.send(Boarddata);
-    res.end();
+    MongoClient.connect(url, { useNewUrlParser: true }, function (err, db) {
+        if (err) {
+            console.log("\x1b[34mHistory Table:\x1b[0m Error: Occured when connecting database.");
+            console.log(err);
+            return;
+        }
+
+        var history = db.db("history");
+
+        obj = history.collection('general').find().sort({ "time": -1 }).limit(20).toArray(function (err, result) {
+            if (err) {
+                console.log("\x1b[31mHistory Table:\x1b[0m Error: Occured when connecting collection.");
+                console.log(err);
+                return;
+            }
+
+            res.send(result);
+            res.end();
+        });
+    });
 });
 
 // view engine setup
@@ -84,7 +100,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/static',express.static(path.join(__dirname, 'public/javascripts')));
 
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
+app.use('/history', historyRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
