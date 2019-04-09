@@ -128,7 +128,7 @@ int IicPhyReset(void);
 #endif
 #endif
 
-volatile char* mac_setter = (char*)0x45000000;
+volatile char* mac_setter = (char*)XPAR_SHELL_I_PACKET_FILTERING_SOURCE_MAC_ADDRESS_S_0_S00_AXI_BASEADDR;
 
 unsigned int temp_threshold = 0;
 extern volatile char* reset_ip;
@@ -145,7 +145,7 @@ int main()
 #endif
 	/* the mac address of the board. this should be unique per board */
 	unsigned char mac_ethernet_address[] =
-	{ 0x00, 0x0a, 0x35, 0x00, 0x01, 0x02 };
+	{ 0x10, 0x0a, 0x35, 0x00, 0x01, 0x20 };
 	//{ 0xca, 0xfe, 0xba, 0xbe, 0x46, 0x49 };
 
 	echo_netif = &server_netif;
@@ -170,26 +170,13 @@ int main()
 	netmask.addr = 0;
 #else
 	/* initliaze IP addresses to be used */
-	IP4_ADDR(&ipaddr,  10, 1,   2, 180);
+	IP4_ADDR(&ipaddr,  10, 1,   2, 166);
 	IP4_ADDR(&netmask, 255, 255, 255,  0);
 	IP4_ADDR(&gw,      10, 1,   2,  1);
 #endif	
 #endif
 	print_app_header();
 
-	/*
-	//Here mac address is 4649cafebabe
-	int mac_addr;
-	INPUT_FROM_MB_mWriteReg(input_mb,INPUT_FROM_MB_S00_AXI_SLV_REG0_OFFSET,0xffffffff);
-	INPUT_FROM_MB_mWriteReg(input_mb,INPUT_FROM_MB_S00_AXI_SLV_REG1_OFFSET,0xffff);
-
-	//INPUT_FROM_MB_mWriteReg(input_mb,INPUT_FROM_MB_S00_AXI_SLV_REG0_OFFSET,0x35000102);
-	//INPUT_FROM_MB_mWriteReg(input_mb,INPUT_FROM_MB_S00_AXI_SLV_REG1_OFFSET,0x000a);
-	INPUT_FROM_MB_mWriteReg(input_mb,INPUT_FROM_MB_S00_AXI_SLV_REG2_OFFSET,1);
-
-	mac_addr = INPUT_FROM_MB_mReadReg(input_mb, INPUT_FROM_MB_S00_AXI_SLV_REG3_OFFSET);
-	xil_printf("current mac_addr(lower 32bits): %x\r\n", mac_addr);
-	*/
 	lwip_init();
 
 #if (LWIP_IPV6 == 0)

@@ -67,6 +67,14 @@ int transfer_data() {
 #define WRITE_MEM_NACK 14
 #define INVALID_PT 0x30303030
 
+/* no used yet
+#define PACKET_TYPE_OFFSET 0
+#define CLIENT_ID_OFFSET 4
+#define THRESHOLD_OFFSET 8
+*/
+
+#define LISTEN_PORT 7
+
 volatile char* SYSMON = (char *)XPAR_SYSMON_0_BASEADDR;
 
 #define MEM_BOT 0x80100000
@@ -117,69 +125,73 @@ err_t recv_callback(void *arg, struct tcp_pcb *tpcb,
 	u32 recv[256] = {0};
 	memcpy(recv, p->payload, p->len);
 	recv[p->len] ='\n';
-	u32 packet_type = recv[0];
-
+	u32 client_id = recv[0];
+    u32 packet_type = recv[1];
 	/* number of bytes to send. Initialize to be 4 because
-	   the reply will be at least 4 bytes to include protocol number */
-	int send_length = 4;
+	   the reply will be at least 8 bytes to include protocol number and client ID*/
+	int send_length = 8;
+    // anyway the first 4 bytes should be packet identifier
 
-	to_send[0] = INVALID_PT;
-
+	to_send[0] = client_id;
 	// In this switch, we only manipulate packet, the value will be sent at end of function
 	switch(packet_type){
 		case TEMP_REQ:
 			print("TEMP REQ\r\n");
 			int ADC_CODE = (*(int*)(SYSMON + 0x400)) >> 6;
-			to_send[0] = TEMP_RESP;
-			to_send[1] = ADC_CODE;
+			to_send[1] = TEMP_RESP;
+			to_send[2] = ADC_CODE;
 			send_length += 4;
 			break;
 		case RESET_CMD:
 			print("RESET CMD\r\n");
+			int i=0;
+			for(i=0; i++; i<100){
+				print("RESET CMD\r\n");
+			}
 			hard_reset(reset_ip);
 			// if the reset is successful, this packet should never be sent
 			print("RESET FAILED, board comes alive\r\n");
-			to_send[0] = RESET_NACK;
+			to_send[1] = RESET_NACK;
 			break;
 		case THRESHOLD_SET:
 			print("Threshold set\r\n");
-			int threshold = recv[1];
+			int threshold = recv[2];
 			xil_printf("receive threshold %x\r\n", threshold);
 			set_threshold(reset_ip, threshold);
-			to_send[0] = THRESHOLD_ACK;
+			to_send[1] = THRESHOLD_ACK;
 
 			break;
 		case READ_MEM:
 			print("READ_MEM\r\n");
-			u32 read_addr = recv[1];
-			u32 read_length = recv[2];
+			u32 read_addr = recv[2];
+			u32 read_length = recv[3];
 			xil_printf("read mem at 0x%08x, length %x\r\n", read_addr, read_length);
 			if(read_addr >= MEM_BOT && read_addr + read_length <= MEM_TOP){
-				to_send[0] = READ_MEM_ACK;
-				memcpy((char*)&to_send[1], (char*)read_addr, read_length);
+				to_send[1] = READ_MEM_ACK;
+				memcpy((char*)&to_send[2], (char*)read_addr, read_length);
 				send_length += read_length;
 			}
 			else{
-				to_send[0] = READ_MEM_NACK;
+				to_send[1] = READ_MEM_NACK;
 			}
 			break;
 		case WRITE_MEM:
 			print("WRITE_MEM\r\n");
-			u32 write_addr =recv[1];
-			u32 write_length =recv[2];
+			u32 write_addr =recv[2];
+			u32 write_length =recv[3];
 			xil_printf("write mem at 0x%08x, length %x\r\n", write_addr, write_length);
 			if(write_addr >= MEM_BOT && write_addr + write_length <= MEM_TOP){
-				to_send[0] = WRITE_MEM_ACK;
+				to_send[1] = WRITE_MEM_ACK;
 				print("ACK");
-				memcpy((char*)write_addr, &recv[3], write_length);
+				memcpy((char*)write_addr, &recv[4], write_length);
 			}
 			else{
 				print("NACK");
-				to_send[0] = WRITE_MEM_NACK;
+				to_send[1] = WRITE_MEM_NACK;
 			}
 			break;
 		default:
-			to_send[0] = INVALID_PT;
+			to_send[1] = INVALID_PT;
 	}
 
 	/* echo back the payload */
@@ -217,7 +229,7 @@ int start_application()
 {
 	struct tcp_pcb *pcb;
 	err_t err;
-	unsigned port = 7;
+	unsigned port = LISTEN_PORT;
 
 	/* create new TCP PCB structure */
 	pcb = tcp_new_ip_type(IPADDR_TYPE_ANY);
