@@ -90,8 +90,8 @@ window.onload = function() {
                     ticks: {
                         fontStyle: 'bold',
                         fontColor: '#FFFFFF',
-                        min: 0,
-                        max: 120
+                        min: 30,
+                        max: 90
                     },
                     color: '#FFFFFF',
                 }]

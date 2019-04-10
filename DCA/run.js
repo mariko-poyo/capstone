@@ -108,7 +108,7 @@ BoardNames.forEach(function(board){
     var board_id = Boarddata[board].ID;
 
     proxy[board] = new net.Socket();
-    proxy[board].setTimeout(15000);
+    proxy[board].setTimeout(5000);
 
     // console.log(Boarddata[board].IP +'/'+Boarddata[board].port);
     // First Connection
@@ -161,11 +161,11 @@ BoardNames.forEach(function(board){
         var buffer = Buffer.from(data);
         var client_id = buffer.toString('hex',0,4);
 
-        console.log(buffer);
+        // console.log(buffer);
         console.log('\x1b[32mProxy Packet\x1b[0m -> From board %s: data received.', board);
 
         buffer = buffer.slice(4);
-        console.log(buffer);
+        // console.log(buffer);
     
         if (buffer[0] == RESP_TEMP){
             // console.log(buffer.readInt32LE(4));
@@ -281,7 +281,7 @@ setInterval(() => {
         delete unconnected[board];
         proxy[board].connect(Boarddata[board].port, Boarddata[board].IP);
     }
-}, 15000);
+}, 5000);  // now 5s for a reconnection
 
 
 // Command Server
