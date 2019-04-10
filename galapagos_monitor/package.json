@@ -1,0 +1,27 @@
+{
+  "name": "galapagos-monitor",
+  "version": "0.0.8",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www",
+    "DCA": "node ./DCA/run.js",
+    "sim": "node ./sim_board/run.js"
+  },
+  "dependencies": {
+    "chart.js": "^2.7.3",
+    "cookie-parser": "~1.4.3",
+    "debug": "~2.6.9",
+    "express": "^4.16.4",
+    "fork": "^1.3.1",
+    "http-errors": "~1.6.2",
+    "moment": "^2.24.0",
+    "mongodb": "^3.1.13",
+    "morgan": "~1.9.0",
+    "net": "^1.0.2",
+    "node-notifier": "^5.3.0",
+    "nodemailer": "^5.1.1",
+    "object-hash": "^1.3.1",
+    "pug": "2.0.0-beta11",
+    "socket.io": "^2.2.0"
+  }
+}

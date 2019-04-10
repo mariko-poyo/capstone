@@ -1,0 +1,102 @@
+extends layout
+
+block content
+    script(src='https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js')
+    script(src='https://rawgit.com/moment/moment/2.2.1/min/moment.min.js')
+    script(src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.js')
+    script(src='/static/Draw.js')
+    script(src='/static/socket.js')
+    script(src='/static/Button.js')
+
+    nav(role = 'navigation', class='nabi_bar', id='nabi_bar')
+        ul(class="nabi_bar_list")
+            li
+                h1(id="name") 
+                    div #{title}
+                        span Welcome to #{title}
+            li 
+                a(href='/')
+                    div Dashboard
+                        span Current status
+            li 
+                a(href='/history')
+                    div History
+                        span Command/Values
+            li 
+                a(href='mailto:GalapagosMonitor@gmail.com')
+                    div Contact
+                        span Administrator
+        
+    br
+    //- h1= title
+    //- p Welcome to #{title}
+
+    block chart
+        div(class="chart")
+            div(id="board_tabs", class="tab")
+                button(class="tablinks", onclick='openCanvas(event,\'Overview\')') Overview
+            div(id="tab_contents" class="tab")
+                div(id="Overview", class="tabcontent")
+                    h3 Overview
+                    p Displaying overview
+                    div(id="canvas_container", class="chart-container")
+                        canvas(id="canvas", class="chartjs-render-monitor")
+                        br
+                        br
+
+    block controlPanel
+        div(class="controlPanel")
+            h1 Control Panel
+            input#MaxItem(type="int" value=10)
+            br
+            button#submitMaxItem(type="button",onclick='submitMaxItem()') Max points showed on chart
+            br
+            br
+            input#Interval(type="int" value=2000)
+            br
+            button#submitInterval(type="button",onclick='submitInterval()') Set Interval (ms)
+            p MIN Interval: 1000
+            br
+            input#WarningCap(type="int" value=75)
+            br
+            button#submitWarningCap(type="button",onclick='setWarningCap()') Set Warning Cap
+            br
+            input#Threshold(type="int" value=90)
+            br
+            button#submitThreshold(type="button",onclick='setThreshold()') Set Reset Threshold
+            br
+            br
+            br
+            button#submitMemoryRead(type="button",onclick='memRead()') Read Memory
+            button#submitMemoryWrite(type="button",onclick='memWrite()') Write Memory
+            br
+            lable Address
+            br
+            input#MemoryAddress(type="string" value="0x90000000" )
+            br 
+            lable Byte  
+            br
+            input#Byte(type="int" value=4)
+            br
+            lable Value  
+            br
+            input#Value(type="string" value="0")
+            h4#messageReturn
+            br
+            br
+
+            block boardList
+                select#selectBoard
+                button(type="button",onclick='addBoardFunc()') Add Board
+                table#monitoringtable
+                    tr
+                        th board name
+                        th status
+                        th temperature
+                    tr
+    
+    div(class="note")
+        h3 Note: Moment.js generates timestamps on current client system time. So some logic will fail if client has different timezone from server.
+        h3 Server side timezone: EDT/EST, Toronto
+
+
