@@ -4,11 +4,6 @@ Monitor application for tracing client board status under Galapagos.
 Updating...
 
 **Last Commit:**
-* Finished protocol for setThreshold.
-* Improved logic for multiple clients.
-* Implemented more error checking and simplified current terminal output.
-
-**Current Commit:**
 * Improved alert event logic. Now email event will be trigger once per overheated event, 
 page pop up event will happen every 30 sec.
 * Separated button functions from ./public/javascript/socket.js to a new file: ./public/javascript/Button.js 
@@ -17,10 +12,16 @@ page pop up event will happen every 30 sec.
 * Removed useless files and comments.
 * Implemented offline check for board table and overview/board chart.
 
+**Current Commit:**
+* Improved offline check related logic.
+* Now a raw history page will show after clicking the navi bar
+* Cleaned up some code. Not all.
+* Implemented a very ugly favico.
+* Revised timeout to 5s.
+* Set a more reasonable range for y-axis in temperature chart.
+
+
 **TODO:**
-* Complete command log logic
-* ~Time chart and dashboard should handle offline events~
-* History page design
 * **Improve CSS**
 * ~Memory operation interface on frontend.~ Improve for long read/write memory operations.
 * Find a way better than using alert for warning messages.
@@ -33,7 +34,7 @@ page pop up event will happen every 30 sec.
 
 #### Opened Issues:
 * Cannot edit properties of x-axies ticks. Need to reformat time, limit range for first 10 values, and larger font size.
-* CSS looks really bad for less resolution web page. 
+* ~CSS looks really bad for less resolution web page.~
 * Wish to enable cookies to save tracking list. Should be pretty easy, but low priority.
 
 
