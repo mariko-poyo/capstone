@@ -36,20 +36,16 @@
 
 #include "netif/xadapter.h"
 #include "xil_io.h"
-//#include "input_from_mb.h"
+#include "util.h"
 #include "platform.h"
 #include "platform_config.h"
-//header file for reset ip
-#include "auto_reset_10bits.h"
-#include "source_mac_address_setting.h"
 #if defined (__arm__) || defined(__aarch64__)
 #include "xil_printf.h"
 #endif
 
 #include "lwip/tcp.h"
 #include "xil_cache.h"
-//header file for sysmon interrupt functions
-#include "xsysmon.h"
+
 
 #if LWIP_IPV6==1
 #include "lwip/ip.h"
@@ -128,14 +124,6 @@ int IicPhyReset(void);
 #endif
 #endif
 
-volatile char* mac_setter = (char*)XPAR_SHELL_I_PACKET_FILTERING_SOURCE_MAC_ADDRESS_S_0_S00_AXI_BASEADDR;
-
-unsigned int temp_threshold = 0;
-extern volatile char* reset_ip;
-
-//global driver
-XSysMon SysMonInst;
-
 int main()
 {
 	//return 0;
@@ -146,7 +134,6 @@ int main()
 	/* the mac address of the board. this should be unique per board */
 	unsigned char mac_ethernet_address[] =
 	{ 0x10, 0x0a, 0x35, 0x00, 0x01, 0x20 };
-	//{ 0xca, 0xfe, 0xba, 0xbe, 0x46, 0x49 };
 
 	echo_netif = &server_netif;
 #if defined (__arm__) && !defined (ARMR5)
@@ -241,28 +228,19 @@ int main()
 
 #endif
 
-	SOURCE_MAC_ADDRESS_SETTING_mWriteReg(mac_setter, SOURCE_MAC_ADDRESS_SETTING_S00_AXI_SLV_REG1_OFFSET, 0x3e8326a4);
-	SOURCE_MAC_ADDRESS_SETTING_mWriteReg(mac_setter, SOURCE_MAC_ADDRESS_SETTING_S00_AXI_SLV_REG2_OFFSET, 0x0016);
-	SOURCE_MAC_ADDRESS_SETTING_mWriteReg(mac_setter, SOURCE_MAC_ADDRESS_SETTING_S00_AXI_SLV_REG3_OFFSET, 0x0);
-	SOURCE_MAC_ADDRESS_SETTING_mWriteReg(mac_setter, SOURCE_MAC_ADDRESS_SETTING_S00_AXI_SLV_REG0_OFFSET, 0x1);
+	// The application should only route network packet with
+	// server's mac address 0x3e:83:26:a4:00:16
+	unsigned char src_mac_ethernet_address[] =
+		{ 0x3e, 0x83, 0x26, 0xa4, 0x00, 0x16 };
+	unsigned int debug_bit = 0;
+	set_src_macaddr(src_mac_ethernet_address, debug_bit);
 
-	//variables
+	// Enable the sysmon core to output ADC code to Temperature bus
+	enable_sysmon_tempbus();
 
-	XSysMon_Config *sysmon_config;
 
-	sysmon_config = XSysMon_LookupConfig(XPAR_SHELL_I_TEMP_IP_SYSTEM_MANAGEMENT_WIZ_0_BASEADDR);
-	if (sysmon_config == NULL) {
-		return XST_FAILURE;
-	}
-	XSysMon_CfgInitialize(&SysMonInst, sysmon_config, sysmon_config->BaseAddress);
-
-	// enable temp update from xadc
-	XSysMon_EnableTempUpdate(&SysMonInst);
-
-	temp_threshold = ceil((60 + 273.6777) * 1024 / 501.3743);
-
-	AUTO_RESET_10BITS_mWriteReg(reset_ip, 0x4, (u32)temp_threshold);
-	AUTO_RESET_10BITS_mWriteReg(reset_ip, 0x8, 1);
+	// Initial reset threshold = 75 celsius
+	set_reset_threshold(75);
 
 
 	/* start the application (web server, rxtest, txtest, etc..) */
@@ -279,7 +257,6 @@ int main()
 			TcpSlowTmrFlag = 0;
 		}
 		xemacif_input(echo_netif);
-		//xil_printf("he");
 		transfer_data();
 	}
   

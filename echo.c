@@ -32,20 +32,13 @@
 
 #include <stdio.h>
 #include <string.h>
-
+#include "util.h"
 #include "lwip/err.h"
 #include "lwip/tcp.h"
 #include "xparameters.h"
-#include "xil_io.h"
 #if defined (__arm__) || defined (__aarch64__)
 #include "xil_printf.h"
 #endif
-
-extern unsigned int temp_threshold;
-volatile char* reset_ip = (char *)XPAR_SHELL_I_TEMP_IP_AUTO_RESET_10BITS_0_S00_AXI_BASEADDR;
-
-//header file for reset ip
-#include "auto_reset_10bits.h"
 
 int transfer_data() {
 	return 0;
@@ -65,7 +58,7 @@ int transfer_data() {
 #define WRITE_MEM 12
 #define WRITE_MEM_ACK 13
 #define WRITE_MEM_NACK 14
-#define INVALID_PT 0x30303030
+#define INVALID_PT 15
 
 /* no used yet
 #define PACKET_TYPE_OFFSET 0
@@ -74,8 +67,6 @@ int transfer_data() {
 */
 
 #define LISTEN_PORT 7
-
-volatile char* SYSMON = (char *)XPAR_SYSMON_0_BASEADDR;
 
 #define MEM_BOT 0x80100000
 #define MEM_TOP 0xFFFFFFFF
@@ -88,24 +79,6 @@ void print_app_header()
 	xil_printf("\n\r\n\r-----lwIPv6 TCP echo server ------\n\r");
 #endif
 	xil_printf("TCP packets sent to port 6001 will be echoed back\n\r");
-}
-
-u32 get_ADC_threshold(u32 decimal_threshold){
-	/* when you actually want to test the functionality
-	int temp_threshold = ceil((threshold + 273.6777) * 1024 / 501.3743);
-	*/
-	u32 ADC_threshold = ((decimal_threshold + 273.6777) * 1024 / 501.3743) + 1;
-	return ADC_threshold;
-}
-
-void hard_reset(volatile char* reset_baseaddr){
-	AUTO_RESET_10BITS_mWriteReg(reset_baseaddr, 0x0, 1);
-}
-
-void set_threshold(volatile char* reset_baseaddr, u32 threshold){
-	u32 temp_threshold = get_ADC_threshold(threshold);
-	AUTO_RESET_10BITS_mWriteReg(reset_ip, 0x4, temp_threshold);
-	AUTO_RESET_10BITS_mWriteReg(reset_ip, 0x8, 1);
 }
 
 err_t recv_callback(void *arg, struct tcp_pcb *tpcb,
@@ -130,25 +103,21 @@ err_t recv_callback(void *arg, struct tcp_pcb *tpcb,
 	/* number of bytes to send. Initialize to be 4 because
 	   the reply will be at least 8 bytes to include protocol number and client ID*/
 	int send_length = 8;
-    // anyway the first 4 bytes should be packet identifier
 
+    // anyway the first 4 bytes should be packet identifier
 	to_send[0] = client_id;
 	// In this switch, we only manipulate packet, the value will be sent at end of function
 	switch(packet_type){
 		case TEMP_REQ:
 			print("TEMP REQ\r\n");
-			int ADC_CODE = (*(int*)(SYSMON + 0x400)) >> 6;
+			int ADC_CODE = get_ADC_code();
 			to_send[1] = TEMP_RESP;
 			to_send[2] = ADC_CODE;
 			send_length += 4;
 			break;
 		case RESET_CMD:
 			print("RESET CMD\r\n");
-			int i=0;
-			for(i=0; i++; i<100){
-				print("RESET CMD\r\n");
-			}
-			hard_reset(reset_ip);
+			hard_reset();
 			// if the reset is successful, this packet should never be sent
 			print("RESET FAILED, board comes alive\r\n");
 			to_send[1] = RESET_NACK;
@@ -157,7 +126,7 @@ err_t recv_callback(void *arg, struct tcp_pcb *tpcb,
 			print("Threshold set\r\n");
 			int threshold = recv[2];
 			xil_printf("receive threshold %x\r\n", threshold);
-			set_threshold(reset_ip, threshold);
+			set_reset_threshold(threshold);
 			to_send[1] = THRESHOLD_ACK;
 
 			break;
