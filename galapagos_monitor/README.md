@@ -3,6 +3,30 @@
 Monitor application for tracing client board status under Galapagos. 
 Updating...
 
+**Setup**
+* MongoDB setup: Follow the steps on [MongoDB Download](https://docs.mongodb.com/manual/administration/install-community/). Install packages.
+
+   ***For Linux***
+   ``` bash
+   sudo service mongod status | restart | stop
+   ```
+   ***For Window***
+   - run services.msc and check status of MongoDB
+
+* Node.js setup: [Node.js Download](https://nodejs.org/en/) Add node to sys env.
+
+``` bash
+   npm install                      // Install all modules in package.json
+   npm start                        // Run server
+   npm run DCA                      // Run DCA
+   npm run sim --host --port        // Run board simulator
+```
+
+**Setup Checklist**
+* Check DCA run.js - temperature routine interval to be 1s
+* Check socket.js - socket.io server address to external IP
+* Check DCA run.js - Mail alert receiver(s)
+
 **Last Commit:**
 * Improved alert event logic. Now email event will be trigger once per overheated event, 
 page pop up event will happen every 30 sec.
@@ -45,17 +69,3 @@ app.js and default 3000 port in ./bin/www to some other ports and the problem sh
 * Now sim_board receives 2 params in commandline. [host, port] **No default value**. 
 * Port polling in DCA is turned off at current stage for debugging. So make sure sim_board or real board is online before DCA running.
 
-**Setup**
-``` bash
-   npm install                      // Install all modules in package.json
-   npm start                        // Run server
-   npm run DCA                      // Run DCA
-   npm run sim --host --port        // Run board simulator
-```
-
-**Setup Checklist**
-* Uncomment reconnect logic in DCA 
-* Enable reset command in DCA
-* Check DCA run.js - temperature routine interval to be 1s
-* Check socket.js - socket.io server address to external IP
-* Check DCA run.js - Mail alert receiver(s)
