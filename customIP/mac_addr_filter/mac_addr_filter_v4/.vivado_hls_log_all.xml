@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<vivadoHLSLog:LogRoot xmlns:vivadoHLSLog="www.xilinx.com/vivadoHLSLog">
+  <errorLogs>
+    <logs>
+      <synLog/>
+      <simLog/>
+      <mgLog/>
+      <packageLog/>
+      <csimLog/>
+    </logs>
+  </errorLogs>
+  <warningLogs>
+    <logs>
+      <synLog>
+        <logs message="WARNING: [RTGEN 206-101] Register 'app_packet_out_last_s' is power-on initialization." projectName="mac_addr_filter_v4" solutionName="solution1" date="2019-03-19T00:05:45.272+0000" type="Warning"/>
+        <logs message="WARNING: [RTGEN 206-101] Register 'second_packet_org_tk' is power-on initialization." projectName="mac_addr_filter_v4" solutionName="solution1" date="2019-03-19T00:05:45.255+0000" type="Warning"/>
+        <logs message="WARNING: [RTGEN 206-101] Register 'second_packet_org_la' is power-on initialization." projectName="mac_addr_filter_v4" solutionName="solution1" date="2019-03-19T00:05:45.248+0000" type="Warning"/>
+        <logs message="WARNING: [RTGEN 206-101] Register 'second_packet_org_da' is power-on initialization." projectName="mac_addr_filter_v4" solutionName="solution1" date="2019-03-19T00:05:45.242+0000" type="Warning"/>
+        <logs message="WARNING: [RTGEN 206-101] Register 'first_packet_in_data' is power-on initialization." projectName="mac_addr_filter_v4" solutionName="solution1" date="2019-03-19T00:05:45.237+0000" type="Warning"/>
+        <logs message="WARNING: [RTGEN 206-101] Register 'first_packet_org_tke' is power-on initialization." projectName="mac_addr_filter_v4" solutionName="solution1" date="2019-03-19T00:05:45.230+0000" type="Warning"/>
+        <logs message="WARNING: [RTGEN 206-101] Register 'first_packet_org_las' is power-on initialization." projectName="mac_addr_filter_v4" solutionName="solution1" date="2019-03-19T00:05:45.222+0000" type="Warning"/>
+        <logs message="WARNING: [RTGEN 206-101] Register 'first_packet_org_dat' is power-on initialization." projectName="mac_addr_filter_v4" solutionName="solution1" date="2019-03-19T00:05:45.216+0000" type="Warning"/>
+        <logs message="WARNING: [RTGEN 206-101] Register 'state_V' is power-on initialization." projectName="mac_addr_filter_v4" solutionName="solution1" date="2019-03-19T00:05:45.207+0000" type="Warning"/>
+        <logs message="WARNING: [HLS 200-41] Resource core 'AXI4Stream' on port '&amp;from_eth' is deprecated. Please use the interface directive to specify the AXI interface." projectName="mac_addr_filter_v4" solutionName="solution1" date="2019-03-19T00:05:42.079+0000" type="Warning"/>
+        <logs message="WARNING: [HLS 200-41] Resource core 'AXI4Stream' on port '&amp;to_pr' is deprecated. Please use the interface directive to specify the AXI interface." projectName="mac_addr_filter_v4" solutionName="solution1" date="2019-03-19T00:05:35.343+0000" type="Warning"/>
+        <logs message="WARNING: [HLS 200-41] Resource core 'AXI4Stream' on port '&amp;to_shell' is deprecated. Please use the interface directive to specify the AXI interface." projectName="mac_addr_filter_v4" solutionName="solution1" date="2019-03-19T00:05:35.337+0000" type="Warning"/>
+      </synLog>
+      <simLog/>
+      <mgLog/>
+      <packageLog/>
+      <csimLog/>
+    </logs>
+  </warningLogs>
+</vivadoHLSLog:LogRoot>
