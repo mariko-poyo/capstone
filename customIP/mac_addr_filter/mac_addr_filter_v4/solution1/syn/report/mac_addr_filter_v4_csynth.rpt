@@ -1,0 +1,126 @@
+
+
+================================================================
+== Vivado HLS Report for 'mac_addr_filter_v4'
+================================================================
+* Date:           Tue Mar 19 00:05:45 2019
+
+* Version:        2018.2 (Build 2258646 on Thu Jun 14 20:25:20 MDT 2018)
+* Project:        mac_addr_filter_v4
+* Solution:       solution1
+* Product family: kintexu
+* Target device:  xcku115-flva1517-2-e
+
+
+================================================================
+== Performance Estimates
+================================================================
++ Timing (ns): 
+    * Summary: 
+    +--------+-------+----------+------------+
+    |  Clock | Target| Estimated| Uncertainty|
+    +--------+-------+----------+------------+
+    |ap_clk  |  10.00|     2.940|        1.25|
+    +--------+-------+----------+------------+
+
++ Latency (clock cycles): 
+    * Summary: 
+    +-----+-----+-----+-----+----------+
+    |  Latency  |  Interval | Pipeline |
+    | min | max | min | max |   Type   |
+    +-----+-----+-----+-----+----------+
+    |    1|    1|    1|    1| dataflow |
+    +-----+-----+-----+-----+----------+
+
+    + Detail: 
+        * Instance: 
+        +---------------------+------------------+-----+-----+-----+-----+----------+
+        |                     |                  |  Latency  |  Interval | Pipeline |
+        |       Instance      |      Module      | min | max | min | max |   Type   |
+        +---------------------+------------------+-----+-----+-----+-----+----------+
+        |packet_filtering_U0  |packet_filtering  |    1|    1|    1|    1| function |
+        +---------------------+------------------+-----+-----+-----+-----+----------+
+
+        * Loop: 
+        N/A
+
+
+
+================================================================
+== Utilization Estimates
+================================================================
+* Summary: 
++---------------------+---------+-------+---------+--------+
+|         Name        | BRAM_18K| DSP48E|    FF   |   LUT  |
++---------------------+---------+-------+---------+--------+
+|DSP                  |        -|      -|        -|       -|
+|Expression           |        -|      -|        -|       -|
+|FIFO                 |        -|      -|        -|       -|
+|Instance             |        -|      -|      435|     227|
+|Memory               |        -|      -|        -|       -|
+|Multiplexer          |        -|      -|        -|       -|
+|Register             |        -|      -|        -|       -|
++---------------------+---------+-------+---------+--------+
+|Total                |        0|      0|      435|     227|
++---------------------+---------+-------+---------+--------+
+|Available SLR        |     2160|   2760|   663360|  331680|
++---------------------+---------+-------+---------+--------+
+|Utilization SLR (%)  |        0|      0|    ~0   |   ~0   |
++---------------------+---------+-------+---------+--------+
+|Available            |     4320|   5520|  1326720|  663360|
++---------------------+---------+-------+---------+--------+
+|Utilization (%)      |        0|      0|    ~0   |   ~0   |
++---------------------+---------+-------+---------+--------+
+
++ Detail: 
+    * Instance: 
+    +---------------------+------------------+---------+-------+-----+-----+
+    |       Instance      |      Module      | BRAM_18K| DSP48E|  FF | LUT |
+    +---------------------+------------------+---------+-------+-----+-----+
+    |packet_filtering_U0  |packet_filtering  |        0|      0|  435|  227|
+    +---------------------+------------------+---------+-------+-----+-----+
+    |Total                |                  |        0|      0|  435|  227|
+    +---------------------+------------------+---------+-------+-----+-----+
+
+    * DSP48: 
+    N/A
+
+    * Memory: 
+    N/A
+
+    * FIFO: 
+    N/A
+
+    * Expression: 
+    N/A
+
+    * Multiplexer: 
+    N/A
+
+    * Register: 
+    N/A
+
+
+
+================================================================
+== Interface
+================================================================
+* Summary: 
++--------------------+-----+-----+--------------+--------------------+--------------+
+|      RTL Ports     | Dir | Bits|   Protocol   |    Source Object   |    C Type    |
++--------------------+-----+-----+--------------+--------------------+--------------+
+|to_shell_V_din      | out |   73|    ap_fifo   |     to_shell_V     |    pointer   |
+|to_shell_V_full_n   |  in |    1|    ap_fifo   |     to_shell_V     |    pointer   |
+|to_shell_V_write    | out |    1|    ap_fifo   |     to_shell_V     |    pointer   |
+|to_pr_V_din         | out |   73|    ap_fifo   |       to_pr_V      |    pointer   |
+|to_pr_V_full_n      |  in |    1|    ap_fifo   |       to_pr_V      |    pointer   |
+|to_pr_V_write       | out |    1|    ap_fifo   |       to_pr_V      |    pointer   |
+|from_eth_V_dout     |  in |   73|    ap_fifo   |     from_eth_V     |    pointer   |
+|from_eth_V_empty_n  |  in |    1|    ap_fifo   |     from_eth_V     |    pointer   |
+|from_eth_V_read     | out |    1|    ap_fifo   |     from_eth_V     |    pointer   |
+|src_mac_addr_V      |  in |   48|    ap_none   |   src_mac_addr_V   |    scalar    |
+|debug_bit_V         |  in |    1|    ap_none   |     debug_bit_V    |    scalar    |
+|ap_clk              |  in |    1| ap_ctrl_none | mac_addr_filter_v4 | return value |
+|ap_rst              |  in |    1| ap_ctrl_none | mac_addr_filter_v4 | return value |
++--------------------+-----+-----+--------------+--------------------+--------------+
+

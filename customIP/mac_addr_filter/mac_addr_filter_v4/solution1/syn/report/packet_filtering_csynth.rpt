@@ -1,0 +1,187 @@
+
+
+================================================================
+== Vivado HLS Report for 'packet_filtering'
+================================================================
+* Date:           Tue Mar 19 00:05:45 2019
+
+* Version:        2018.2 (Build 2258646 on Thu Jun 14 20:25:20 MDT 2018)
+* Project:        mac_addr_filter_v4
+* Solution:       solution1
+* Product family: kintexu
+* Target device:  xcku115-flva1517-2-e
+
+
+================================================================
+== Performance Estimates
+================================================================
++ Timing (ns): 
+    * Summary: 
+    +--------+-------+----------+------------+
+    |  Clock | Target| Estimated| Uncertainty|
+    +--------+-------+----------+------------+
+    |ap_clk  |  10.00|     2.940|        1.25|
+    +--------+-------+----------+------------+
+
++ Latency (clock cycles): 
+    * Summary: 
+    +-----+-----+-----+-----+----------+
+    |  Latency  |  Interval | Pipeline |
+    | min | max | min | max |   Type   |
+    +-----+-----+-----+-----+----------+
+    |    1|    1|    1|    1| function |
+    +-----+-----+-----+-----+----------+
+
+    + Detail: 
+        * Instance: 
+        N/A
+
+        * Loop: 
+        N/A
+
+
+
+================================================================
+== Utilization Estimates
+================================================================
+* Summary: 
++---------------------+---------+-------+---------+--------+
+|         Name        | BRAM_18K| DSP48E|    FF   |   LUT  |
++---------------------+---------+-------+---------+--------+
+|DSP                  |        -|      -|        -|       -|
+|Expression           |        -|      -|        0|      63|
+|FIFO                 |        -|      -|        -|       -|
+|Instance             |        -|      -|        -|       -|
+|Memory               |        -|      -|        -|       -|
+|Multiplexer          |        -|      -|        -|     164|
+|Register             |        -|      -|      435|       -|
++---------------------+---------+-------+---------+--------+
+|Total                |        0|      0|      435|     227|
++---------------------+---------+-------+---------+--------+
+|Available SLR        |     2160|   2760|   663360|  331680|
++---------------------+---------+-------+---------+--------+
+|Utilization SLR (%)  |        0|      0|    ~0   |   ~0   |
++---------------------+---------+-------+---------+--------+
+|Available            |     4320|   5520|  1326720|  663360|
++---------------------+---------+-------+---------+--------+
+|Utilization (%)      |        0|      0|    ~0   |   ~0   |
++---------------------+---------+-------+---------+--------+
+
++ Detail: 
+    * Instance: 
+    N/A
+
+    * DSP48: 
+    N/A
+
+    * Memory: 
+    N/A
+
+    * FIFO: 
+    N/A
+
+    * Expression: 
+    +----------------------------------+----------+-------+---+----+------------+------------+
+    |           Variable Name          | Operation| DSP48E| FF| LUT| Bitwidth P0| Bitwidth P1|
+    +----------------------------------+----------+-------+---+----+------------+------------+
+    |ap_condition_125                  |    and   |      0|  0|   2|           1|           1|
+    |ap_condition_234                  |    and   |      0|  0|   2|           1|           1|
+    |ap_condition_451                  |    and   |      0|  0|   2|           1|           1|
+    |ap_condition_455                  |    and   |      0|  0|   2|           1|           1|
+    |ap_predicate_op13_read_state1     |    and   |      0|  0|   2|           1|           1|
+    |ap_predicate_op29_read_state1     |    and   |      0|  0|   2|           1|           1|
+    |ap_predicate_op44_read_state1     |    and   |      0|  0|   2|           1|           1|
+    |ap_predicate_op61_read_state1     |    and   |      0|  0|   2|           1|           1|
+    |ap_predicate_op89_write_state2    |    and   |      0|  0|   2|           1|           1|
+    |ap_predicate_op94_write_state2    |    and   |      0|  0|   2|           1|           1|
+    |tmp_s_fu_360_p2                   |   icmp   |      0|  0|  24|          48|          48|
+    |ap_block_pp0_stage0_01001         |    or    |      0|  0|   2|           1|           1|
+    |ap_block_state1_pp0_stage0_iter0  |    or    |      0|  0|   2|           1|           1|
+    |ap_block_state2_pp0_stage0_iter1  |    or    |      0|  0|   2|           1|           1|
+    |tmp_22_fu_366_p2                  |    or    |      0|  0|   2|           1|           1|
+    |storemerge1_cast_cas_fu_302_p3    |  select  |      0|  0|   3|           1|           1|
+    |storemerge3_cast_cas_fu_372_p3    |  select  |      0|  0|   3|           1|           3|
+    |storemerge_cast_cast_fu_276_p3    |  select  |      0|  0|   3|           1|           1|
+    |ap_enable_pp0                     |    xor   |      0|  0|   2|           1|           2|
+    +----------------------------------+----------+-------+---+----+------------+------------+
+    |Total                             |          |      0|  0|  63|          66|          69|
+    +----------------------------------+----------+-------+---+----+------------+------------+
+
+    * Multiplexer: 
+    +------------------------------------------------+----+-----------+-----+-----------+
+    |                      Name                      | LUT| Input Size| Bits| Total Bits|
+    +------------------------------------------------+----+-----------+-----+-----------+
+    |ap_done                                         |   9|          2|    1|          2|
+    |ap_phi_mux_app_packet_out_last_2_phi_fu_170_p4  |  15|          3|    1|          3|
+    |ap_phi_mux_app_packet_out_last_3_phi_fu_161_p4  |  15|          3|    1|          3|
+    |app_packet_out_last_s                           |  15|          3|    1|          3|
+    |from_eth_V_blk_n                                |   9|          2|    1|          2|
+    |state_V                                         |  41|          8|    3|         24|
+    |to_pr_V_blk_n                                   |   9|          2|    1|          2|
+    |to_pr_V_din                                     |  21|          4|   73|        292|
+    |to_shell_V_blk_n                                |   9|          2|    1|          2|
+    |to_shell_V_din                                  |  21|          4|   73|        292|
+    +------------------------------------------------+----+-----------+-----+-----------+
+    |Total                                           | 164|         33|  156|        625|
+    +------------------------------------------------+----+-----------+-----+-----------+
+
+    * Register: 
+    +-------------------------+----+----+-----+-----------+
+    |           Name          | FF | LUT| Bits| Const Bits|
+    +-------------------------+----+----+-----+-----------+
+    |ap_CS_fsm                |   1|   0|    1|          0|
+    |ap_done_reg              |   1|   0|    1|          0|
+    |ap_enable_reg_pp0_iter1  |   1|   0|    1|          0|
+    |app_packet_out_last_s    |   1|   0|    1|          0|
+    |first_packet_in_data     |  64|   0|   64|          0|
+    |first_packet_org_dat     |  64|   0|   64|          0|
+    |first_packet_org_las     |   1|   0|    1|          0|
+    |first_packet_org_tke     |   8|   0|    8|          0|
+    |lhs_V_1_reg_578          |  64|   0|   64|          0|
+    |lhs_V_reg_587            |  64|   0|   64|          0|
+    |reg_242                  |  73|   0|   73|          0|
+    |reg_248                  |   8|   0|    8|          0|
+    |second_packet_org_da     |  64|   0|   64|          0|
+    |second_packet_org_la     |   1|   0|    1|          0|
+    |second_packet_org_tk     |   8|   0|    8|          0|
+    |state_V                  |   3|   0|    4|          1|
+    |state_V_load_reg_550     |   3|   0|    4|          1|
+    |tmp_1_reg_574            |   1|   0|    1|          0|
+    |tmp_2_reg_570            |   1|   0|    1|          0|
+    |tmp_3_reg_566            |   1|   0|    1|          0|
+    |tmp_last_V_1_reg_560     |   1|   0|    1|          0|
+    |tmp_last_V_reg_554       |   1|   0|    1|          0|
+    |tmp_reg_583              |   1|   0|    1|          0|
+    +-------------------------+----+----+-----+-----------+
+    |Total                    | 435|   0|  437|          2|
+    +-------------------------+----+----+-----+-----------+
+
+
+
+================================================================
+== Interface
+================================================================
+* Summary: 
++--------------------+-----+-----+------------+------------------+--------------+
+|      RTL Ports     | Dir | Bits|  Protocol  |   Source Object  |    C Type    |
++--------------------+-----+-----+------------+------------------+--------------+
+|ap_clk              |  in |    1| ap_ctrl_hs | packet_filtering | return value |
+|ap_rst              |  in |    1| ap_ctrl_hs | packet_filtering | return value |
+|ap_start            |  in |    1| ap_ctrl_hs | packet_filtering | return value |
+|ap_done             | out |    1| ap_ctrl_hs | packet_filtering | return value |
+|ap_continue         |  in |    1| ap_ctrl_hs | packet_filtering | return value |
+|ap_idle             | out |    1| ap_ctrl_hs | packet_filtering | return value |
+|ap_ready            | out |    1| ap_ctrl_hs | packet_filtering | return value |
+|from_eth_V_dout     |  in |   73|   ap_fifo  |    from_eth_V    |    pointer   |
+|from_eth_V_empty_n  |  in |    1|   ap_fifo  |    from_eth_V    |    pointer   |
+|from_eth_V_read     | out |    1|   ap_fifo  |    from_eth_V    |    pointer   |
+|to_shell_V_din      | out |   73|   ap_fifo  |    to_shell_V    |    pointer   |
+|to_shell_V_full_n   |  in |    1|   ap_fifo  |    to_shell_V    |    pointer   |
+|to_shell_V_write    | out |    1|   ap_fifo  |    to_shell_V    |    pointer   |
+|to_pr_V_din         | out |   73|   ap_fifo  |      to_pr_V     |    pointer   |
+|to_pr_V_full_n      |  in |    1|   ap_fifo  |      to_pr_V     |    pointer   |
+|to_pr_V_write       | out |    1|   ap_fifo  |      to_pr_V     |    pointer   |
+|src_mac_addr_V      |  in |   48|   ap_none  |  src_mac_addr_V  |    scalar    |
+|debug_bit_V         |  in |    1|   ap_none  |    debug_bit_V   |    scalar    |
++--------------------+-----+-----+------------+------------------+--------------+
+
