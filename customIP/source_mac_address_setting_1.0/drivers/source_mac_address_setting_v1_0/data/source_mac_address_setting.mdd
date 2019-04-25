@@ -1,0 +1,10 @@
+
+
+OPTION psf_version = 2.1;
+
+BEGIN DRIVER source_mac_address_setting
+	OPTION supported_peripherals = (source_mac_address_setting);
+	OPTION copyfiles = all;
+	OPTION VERSION = 1.0;
+	OPTION NAME = source_mac_address_setting;
+END DRIVER

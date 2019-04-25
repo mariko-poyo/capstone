@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Messages>
+	<Message severity="INFO" prefix="[HLS 200-10]" key="HLS_10_1312" tag="" content="Analyzing design file &apos;mac_addr/mac_adddr_filter_v4.cpp&apos; ..."/>
+	<Message severity="WARNING" prefix="[HLS 200-41]" key="HLS_41_1434" tag="" content="Resource core &apos;AXI4Stream&apos; on port &apos;&amp;to_shell&apos; is deprecated. Please use the interface directive to specify the AXI interface."/>
+	<Message severity="WARNING" prefix="[HLS 200-41]" key="HLS_41_1434" tag="" content="Resource core &apos;AXI4Stream&apos; on port &apos;&amp;to_pr&apos; is deprecated. Please use the interface directive to specify the AXI interface."/>
+	<Message severity="WARNING" prefix="[HLS 200-41]" key="HLS_41_1434" tag="" content="Resource core &apos;AXI4Stream&apos; on port &apos;&amp;from_eth&apos; is deprecated. Please use the interface directive to specify the AXI interface."/>
+	<Message severity="INFO" prefix="[HLS 200-111]" key="HLS_111_965" tag="" content="Finished Linking Time (s): cpu = 00:00:17 ; elapsed = 00:00:20 . Memory (MB): peak = 370.688 ; gain = 6.234 ; free physical = 42065 ; free virtual = 101383"/>
+	<Message severity="INFO" prefix="[HLS 200-111]" key="HLS_111_965" tag="" content="Finished Checking Pragmas Time (s): cpu = 00:00:17 ; elapsed = 00:00:20 . Memory (MB): peak = 370.688 ; gain = 6.234 ; free physical = 42065 ; free virtual = 101383"/>
+	<Message severity="INFO" prefix="[HLS 200-10]" key="HLS_10_1467" tag="" content="Starting code transformations ..."/>
+	<Message severity="INFO" prefix="[HLS 200-111]" key="HLS_111_965" tag="" content="Finished Standard Transforms Time (s): cpu = 00:00:18 ; elapsed = 00:00:22 . Memory (MB): peak = 371.059 ; gain = 6.605 ; free physical = 42051 ; free virtual = 101369"/>
+	<Message severity="INFO" prefix="[HLS 200-10]" key="HLS_10_1472" tag="" content="Checking synthesizability ..."/>
+	<Message severity="INFO" prefix="[XFORM 203-602]" key="XFORM_AUTO_INLINE_STATUS_223" tag="" content="Inlining function &apos;reverseEndian64_data&apos; into &apos;packet_filtering&apos; (mac_addr/mac_adddr_filter_v4.cpp:60) automatically."/>
+	<Message severity="INFO" prefix="[HLS 200-111]" key="HLS_111_965" tag="" content="Finished Checking Synthesizability Time (s): cpu = 00:00:18 ; elapsed = 00:00:22 . Memory (MB): peak = 498.984 ; gain = 134.531 ; free physical = 42027 ; free virtual = 101345"/>
+	<Message severity="INFO" prefix="[XFORM 203-1101]" key="XFORM_DATA_PACK_STATUS_345" tag="" content="Packing variable &apos;to_shell.V&apos; (mac_addr/mac_adddr_filter_v4.cpp:148) into a 73-bit variable."/>
+	<Message severity="INFO" prefix="[XFORM 203-1101]" key="XFORM_DATA_PACK_STATUS_345" tag="" content="Packing variable &apos;to_pr.V&apos; (mac_addr/mac_adddr_filter_v4.cpp:149) into a 73-bit variable."/>
+	<Message severity="INFO" prefix="[XFORM 203-1101]" key="XFORM_DATA_PACK_STATUS_345" tag="" content="Packing variable &apos;from_eth.V&apos; (mac_addr/mac_adddr_filter_v4.cpp:150) into a 73-bit variable."/>
+	<Message severity="INFO" prefix="[XFORM 203-602]" key="XFORM_AUTO_INLINE_STATUS_223" tag="" content="Inlining function &apos;reverseEndian64_data&apos; into &apos;packet_filtering&apos; (mac_addr/mac_adddr_filter_v4.cpp:60) automatically."/>
+	<Message severity="INFO" prefix="[XFORM 203-712]" key="XFORM_DATAFLOW_TRANSFORM_230" tag="DATAFLOW" content="Applying dataflow to function &apos;mac_addr_filter_v4&apos;, detected/extracted 1 process function(s): 
+	 &apos;packet_filtering&apos;."/>
+	<Message severity="INFO" prefix="[XFORM 203-401]" key="XFORM_IFCONV_STATUS_239" tag="" content="Performing if-conversion on hyperblock from (mac_addr/mac_adddr_filter_v4.cpp:66:37) to (mac_addr/mac_adddr_filter_v4.cpp:84:13) in function &apos;packet_filtering&apos;... converting 3 basic blocks."/>
+	<Message severity="INFO" prefix="[HLS 200-111]" key="HLS_111_965" tag="" content="Finished Pre-synthesis Time (s): cpu = 00:00:19 ; elapsed = 00:00:23 . Memory (MB): peak = 498.984 ; gain = 134.531 ; free physical = 42033 ; free virtual = 101351"/>
+	<Message severity="INFO" prefix="[HLS 200-111]" key="HLS_111_965" tag="" content="Finished Architecture Synthesis Time (s): cpu = 00:00:19 ; elapsed = 00:00:23 . Memory (MB): peak = 498.984 ; gain = 134.531 ; free physical = 42019 ; free virtual = 101337"/>
+	<Message severity="INFO" prefix="[HLS 200-10]" key="HLS_10_1317" tag="" content="Starting hardware synthesis ..."/>
+	<Message severity="INFO" prefix="[HLS 200-10]" key="HLS_10_1385" tag="" content="Synthesizing &apos;mac_addr_filter_v4&apos; ..."/>
+	<Message severity="INFO" prefix="[HLS 200-10]" key="HLS_10_1477" tag="" content="----------------------------------------------------------------"/>
+	<Message severity="INFO" prefix="[HLS 200-42]" key="HLS_42_1438" tag="" content="-- Implementing module &apos;packet_filtering&apos;"/>
+	<Message severity="INFO" prefix="[HLS 200-10]" key="HLS_10_1478" tag="" content="----------------------------------------------------------------"/>
+	<Message severity="INFO" prefix="[SCHED 204-11]" key="SCHED_SCHED_STATUS_597" tag="" content="Starting scheduling ..."/>
+	<Message severity="INFO" prefix="[SCHED 204-61]" key="SCHED_PIPELINING_STATUS_46" tag="" content="Pipelining function &apos;packet_filtering&apos;."/>
+	<Message severity="INFO" prefix="[SCHED 204-61]" key="SCHED_PIPELINING_STATUS_44" tag="" content="Pipelining result : Target II = 1, Final II = 1, Depth = 2."/>
+	<Message severity="INFO" prefix="[SCHED 204-11]" key="SCHED_SCHED_STATUS_596" tag="" content="Finished scheduling."/>
+	<Message severity="INFO" prefix="[HLS 200-111]" key="HLS_111_966" tag="" content=" Elapsed time: 23.25 seconds; current allocated memory: 99.841 MB."/>
+	<Message severity="INFO" prefix="[BIND 205-100]" key="BIND_100_926" tag="" content="Starting micro-architecture generation ..."/>
+	<Message severity="INFO" prefix="[BIND 205-101]" key="BIND_101_698" tag="" content="Performing variable lifetime analysis."/>
+	<Message severity="INFO" prefix="[BIND 205-101]" key="BIND_101_697" tag="" content="Exploring resource sharing."/>
+	<Message severity="INFO" prefix="[BIND 205-101]" key="BIND_101_693" tag="" content="Binding ..."/>
+	<Message severity="INFO" prefix="[BIND 205-100]" key="BIND_100_925" tag="" content="Finished micro-architecture generation."/>
+	<Message severity="INFO" prefix="[HLS 200-111]" key="HLS_111_966" tag="" content=" Elapsed time: 0.08 seconds; current allocated memory: 100.267 MB."/>
+	<Message severity="INFO" prefix="[HLS 200-10]" key="HLS_10_1477" tag="" content="----------------------------------------------------------------"/>
+	<Message severity="INFO" prefix="[HLS 200-42]" key="HLS_42_1438" tag="" content="-- Implementing module &apos;mac_addr_filter_v4&apos;"/>
+	<Message severity="INFO" prefix="[HLS 200-10]" key="HLS_10_1478" tag="" content="----------------------------------------------------------------"/>
+	<Message severity="INFO" prefix="[SCHED 204-11]" key="SCHED_SCHED_STATUS_597" tag="" content="Starting scheduling ..."/>
+	<Message severity="INFO" prefix="[SCHED 204-11]" key="SCHED_SCHED_STATUS_596" tag="" content="Finished scheduling."/>
+	<Message severity="INFO" prefix="[HLS 200-111]" key="HLS_111_966" tag="" content=" Elapsed time: 0.03 seconds; current allocated memory: 100.369 MB."/>
+	<Message severity="INFO" prefix="[BIND 205-100]" key="BIND_100_926" tag="" content="Starting micro-architecture generation ..."/>
+	<Message severity="INFO" prefix="[BIND 205-101]" key="BIND_101_698" tag="" content="Performing variable lifetime analysis."/>
+	<Message severity="INFO" prefix="[BIND 205-101]" key="BIND_101_697" tag="" content="Exploring resource sharing."/>
+	<Message severity="INFO" prefix="[BIND 205-101]" key="BIND_101_693" tag="" content="Binding ..."/>
+	<Message severity="INFO" prefix="[BIND 205-100]" key="BIND_100_925" tag="" content="Finished micro-architecture generation."/>
+	<Message severity="INFO" prefix="[HLS 200-111]" key="HLS_111_966" tag="" content=" Elapsed time: 0 seconds; current allocated memory: 100.480 MB."/>
+	<Message severity="INFO" prefix="[HLS 200-10]" key="HLS_10_1483" tag="" content="----------------------------------------------------------------"/>
+	<Message severity="INFO" prefix="[HLS 200-10]" key="HLS_10_1484" tag="" content="-- Generating RTL for module &apos;packet_filtering&apos;"/>
+	<Message severity="INFO" prefix="[HLS 200-10]" key="HLS_10_1485" tag="" content="----------------------------------------------------------------"/>
+	<Message severity="WARNING" prefix="[RTGEN 206-101]" key="RTGEN_101_861" tag="" content="Register &apos;state_V&apos; is power-on initialization."/>
+	<Message severity="WARNING" prefix="[RTGEN 206-101]" key="RTGEN_101_861" tag="" content="Register &apos;first_packet_org_dat&apos; is power-on initialization."/>
+	<Message severity="WARNING" prefix="[RTGEN 206-101]" key="RTGEN_101_861" tag="" content="Register &apos;first_packet_org_las&apos; is power-on initialization."/>
+	<Message severity="WARNING" prefix="[RTGEN 206-101]" key="RTGEN_101_861" tag="" content="Register &apos;first_packet_org_tke&apos; is power-on initialization."/>
+	<Message severity="WARNING" prefix="[RTGEN 206-101]" key="RTGEN_101_861" tag="" content="Register &apos;first_packet_in_data&apos; is power-on initialization."/>
+	<Message severity="WARNING" prefix="[RTGEN 206-101]" key="RTGEN_101_861" tag="" content="Register &apos;second_packet_org_da&apos; is power-on initialization."/>
+	<Message severity="WARNING" prefix="[RTGEN 206-101]" key="RTGEN_101_861" tag="" content="Register &apos;second_packet_org_la&apos; is power-on initialization."/>
+	<Message severity="WARNING" prefix="[RTGEN 206-101]" key="RTGEN_101_861" tag="" content="Register &apos;second_packet_org_tk&apos; is power-on initialization."/>
+	<Message severity="WARNING" prefix="[RTGEN 206-101]" key="RTGEN_101_861" tag="" content="Register &apos;app_packet_out_last_s&apos; is power-on initialization."/>
+	<Message severity="INFO" prefix="[RTGEN 206-100]" key="RTGEN_100_856" tag="" content="Finished creating RTL model for &apos;packet_filtering&apos;."/>
+	<Message severity="INFO" prefix="[HLS 200-111]" key="HLS_111_966" tag="" content=" Elapsed time: 0.09 seconds; current allocated memory: 101.150 MB."/>
+	<Message severity="INFO" prefix="[HLS 200-10]" key="HLS_10_1483" tag="" content="----------------------------------------------------------------"/>
+	<Message severity="INFO" prefix="[HLS 200-10]" key="HLS_10_1484" tag="" content="-- Generating RTL for module &apos;mac_addr_filter_v4&apos;"/>
+	<Message severity="INFO" prefix="[HLS 200-10]" key="HLS_10_1485" tag="" content="----------------------------------------------------------------"/>
+	<Message severity="INFO" prefix="[RTGEN 206-500]" key="PREPROC_IO_COMP_CONFLICT_1950" tag="" content="Setting interface mode on port &apos;mac_addr_filter_v4/to_shell_V&apos; to &apos;ap_fifo&apos;."/>
+	<Message severity="INFO" prefix="[RTGEN 206-500]" key="PREPROC_IO_COMP_CONFLICT_1950" tag="" content="Setting interface mode on port &apos;mac_addr_filter_v4/to_pr_V&apos; to &apos;ap_fifo&apos;."/>
+	<Message severity="INFO" prefix="[RTGEN 206-500]" key="PREPROC_IO_COMP_CONFLICT_1950" tag="" content="Setting interface mode on port &apos;mac_addr_filter_v4/from_eth_V&apos; to &apos;ap_fifo&apos;."/>
+	<Message severity="INFO" prefix="[RTGEN 206-500]" key="PREPROC_IO_COMP_CONFLICT_1950" tag="" content="Setting interface mode on port &apos;mac_addr_filter_v4/src_mac_addr_V&apos; to &apos;ap_none&apos;."/>
+	<Message severity="INFO" prefix="[RTGEN 206-500]" key="PREPROC_IO_COMP_CONFLICT_1950" tag="" content="Setting interface mode on port &apos;mac_addr_filter_v4/debug_bit_V&apos; to &apos;ap_none&apos;."/>
+	<Message severity="INFO" prefix="[RTGEN 206-500]" key="PREPROC_IO_COMP_CONFLICT_1950" tag="" content="Setting interface mode on function &apos;mac_addr_filter_v4&apos; to &apos;ap_ctrl_none&apos;."/>
+	<Message severity="INFO" prefix="[RTGEN 206-100]" key="RTGEN_100_856" tag="" content="Finished creating RTL model for &apos;mac_addr_filter_v4&apos;."/>
+	<Message severity="INFO" prefix="[HLS 200-111]" key="HLS_111_966" tag="" content=" Elapsed time: 0.14 seconds; current allocated memory: 102.740 MB."/>
+	<Message severity="INFO" prefix="[IMPL 213-200]" key="IMPL_200_1804" tag="" content="Port &apos;from_eth_V.data&apos; is mapped to &apos;TDATA&apos; by default."/>
+	<Message severity="INFO" prefix="[IMPL 213-200]" key="IMPL_200_1804" tag="" content="Port &apos;from_eth_V.last&apos; is mapped to &apos;TLAST&apos; by default."/>
+	<Message severity="INFO" prefix="[IMPL 213-200]" key="IMPL_200_1804" tag="" content="Port &apos;from_eth_V.tkeep&apos; is mapped to &apos;TKEEP&apos; by default."/>
+	<Message severity="INFO" prefix="[IMPL 213-200]" key="IMPL_200_1804" tag="" content="Port &apos;to_pr_V.data&apos; is mapped to &apos;TDATA&apos; by default."/>
+	<Message severity="INFO" prefix="[IMPL 213-200]" key="IMPL_200_1804" tag="" content="Port &apos;to_pr_V.last&apos; is mapped to &apos;TLAST&apos; by default."/>
+	<Message severity="INFO" prefix="[IMPL 213-200]" key="IMPL_200_1804" tag="" content="Port &apos;to_pr_V.tkeep&apos; is mapped to &apos;TKEEP&apos; by default."/>
+	<Message severity="INFO" prefix="[IMPL 213-200]" key="IMPL_200_1804" tag="" content="Port &apos;to_shell_V.data&apos; is mapped to &apos;TDATA&apos; by default."/>
+	<Message severity="INFO" prefix="[IMPL 213-200]" key="IMPL_200_1804" tag="" content="Port &apos;to_shell_V.last&apos; is mapped to &apos;TLAST&apos; by default."/>
+	<Message severity="INFO" prefix="[IMPL 213-200]" key="IMPL_200_1804" tag="" content="Port &apos;to_shell_V.tkeep&apos; is mapped to &apos;TKEEP&apos; by default."/>
+	<Message severity="INFO" prefix="[HLS 200-111]" key="HLS_111_965" tag="" content="Finished generating all RTL models Time (s): cpu = 00:00:20 ; elapsed = 00:00:24 . Memory (MB): peak = 498.984 ; gain = 134.531 ; free physical = 41976 ; free virtual = 101294"/>
+	<Message severity="INFO" prefix="[SYSC 207-301]" key="SYSC_301_1065" tag="" content="Generating SystemC RTL for mac_addr_filter_v4."/>
+	<Message severity="INFO" prefix="[VHDL 208-304]" key="VHDL_304_1066" tag="" content="Generating VHDL RTL for mac_addr_filter_v4."/>
+	<Message severity="INFO" prefix="[VLOG 209-307]" key="VLOG_307_1067" tag="" content="Generating Verilog RTL for mac_addr_filter_v4."/>
+	<Message severity="INFO" prefix="[HLS 200-112]" key="HLS_112_964" tag="" content="Total elapsed time: 24.25 seconds; peak allocated memory: 102.740 MB."/>
+</Messages>

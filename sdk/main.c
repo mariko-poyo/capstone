@@ -213,7 +213,7 @@ int main()
 		if ((echo_netif->ip_addr.addr) == 0) {
 			xil_printf("DHCP Timeout\r\n");
 			xil_printf("Configuring default IP\r\n");
-			IP4_ADDR(&(echo_netif->ip_addr),  10, 1,   2, 88);
+			IP4_ADDR(&(echo_netif->ip_addr),  10, 1,   2, 166);
 			IP4_ADDR(&(echo_netif->netmask), 255, 255, 255,  0);
 			IP4_ADDR(&(echo_netif->gw),      10, 1,   2,  1);
 		}
@@ -232,16 +232,18 @@ int main()
 	// server's mac address 0x3e:83:26:a4:00:16
 	unsigned char src_mac_ethernet_address[] =
 		{ 0x3e, 0x83, 0x26, 0xa4, 0x00, 0x16 };
-	unsigned int debug_bit = 0;
+    // Set debug = off. 
+    unsigned int debug_bit = 0;
+    // If debug = 0, only packet from mac address 0x3e:83:26:a4:00:16 
+    // will be routed into shell space
+    // If debug = 1, all packets coming out from Ethernet will be send to shell space.
 	set_src_macaddr(src_mac_ethernet_address, debug_bit);
 
 	// Enable the sysmon core to output ADC code to Temperature bus
 	enable_sysmon_tempbus();
 
-
 	// Initial reset threshold = 75 celsius
 	set_reset_threshold(75);
-
 
 	/* start the application (web server, rxtest, txtest, etc..) */
 	start_application();
@@ -257,7 +259,6 @@ int main()
 			TcpSlowTmrFlag = 0;
 		}
 		xemacif_input(echo_netif);
-		transfer_data();
 	}
   
 	/* never reached */

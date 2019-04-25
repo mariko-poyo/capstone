@@ -40,10 +40,6 @@
 #include "xil_printf.h"
 #endif
 
-int transfer_data() {
-	return 0;
-}
-
 #define TEMP_REQ 1
 #define TEMP_RESP 2
 #define RESET_CMD 3
@@ -94,6 +90,10 @@ err_t recv_callback(void *arg, struct tcp_pcb *tpcb,
 	/* indicate that the packet has been received */
 	tcp_recved(tpcb, p->len);
 
+    /* The reply packet is formatted as below 
+     * |  Client ID  |  Packet Type |  reply messages(if applicable) |
+     *   4 bytes        4 bytes            
+    */
 	u32 to_send[256] = {0};
 	u32 recv[256] = {0};
 	memcpy(recv, p->payload, p->len);
