@@ -10,10 +10,11 @@ var email_event_flag = {};
 var email_cap = 90;
 var unconnected = {};
 var web_server_socket;
+
 for (item in Boarddata) {
     BoardNames.push(item);
     email_event_flag[item] = 0;
-} // Used for proxy setup. AddEventListener will be skewed up if using for .. in since function is async, thus we have to use forEach.
+} // Used for proxy setup. AddEventListener will be skewed up if using for .. in because the function is async, thus we have to use forEach.
 
 // Socket Setup
 const net = require('net');
@@ -145,6 +146,7 @@ BoardNames.forEach(function(board){
             if (converted_temp >= email_cap) {
                 if (!email_event_flag[board]) {
                     console.log('\x1b[91mProcess\x1b[0m -> Alert email sent. Temperature at the moment is %f.\n', converted_temp);
+                    // Edit this content as you wish
                     mailOptions.text = "Alert: Board " + board
                         + "(" + board_id + ") is over set alert cap " + email_cap
                         + " at " + timeStamp_mail
@@ -254,6 +256,7 @@ setInterval(() => {
 const commandServer = net.createServer(function(socket){
     console.log('\x1b[33mCommandServer\x1b[0m -> Connected to a new web server client.');
 
+    // Update global. (TODO: I don't really like this brutal global var. Can we modify the logic?)
     web_server_socket = socket;
 
     socket.setEncoding("utf8");
@@ -261,7 +264,6 @@ const commandServer = net.createServer(function(socket){
         console.log('\x1b[33mCommandServer\x1b[0m -> Data Received: ' + data);
         var packet = JSON.parse(data);
         var client_id = packet.client_id;
-        // console.log(packet);
 
         var timeStamp = moment().format("YYYY MM DD, HH:mm:ss");
 
@@ -276,7 +278,7 @@ const commandServer = net.createServer(function(socket){
                 return;
             }
 
-            // TODO: from ip address is better? Take a look how to get ip from socket
+            // TODO: from ip address is better? Take a look how to get ip from socket object
             var log = { opcode: BRD_RST, board_name: name, board_id: id, from: client_id, time: timeStamp };
             dbWrite('history', 'general', log);
 
@@ -287,7 +289,7 @@ const commandServer = net.createServer(function(socket){
             console.log(buffer);
             proxy[name].write(buffer);
 
-            // proxy[name].end(); // Design Fair Checklist: Container Limited Ver.
+            // proxy[name].end(); // Design Fair Checklist: Container Limited Ver. 
 
             socket.write(JSON.stringify({ opcode: BRD_RST, name: name, id: id, return: ONSUCCESS, client_id: client_id}));
         }
@@ -304,7 +306,7 @@ const commandServer = net.createServer(function(socket){
                 socket.write(JSON.stringify({ opcode: BRD_MEM_R, name: name, id: id, return: ONFAILURE, err_msg: err_msg, client_id: client_id }));
                 return;
             }
-            // socket.write(JSON.stringify({ opcode: BRD_MEM_R, name: name, id: id, return: ONSUCCESS, address: address, byte: byte, content: "DEADBEEF"}));
+        
             var log = { opcode: BRD_RST, board_name: name, board_id: id, from: client_id, time: timeStamp, address: address, byte: byte };
             dbWrite('history', 'general', log);
 
@@ -332,7 +334,7 @@ const commandServer = net.createServer(function(socket){
                 socket.write(JSON.stringify({ opcode: BRD_MEM_W, name: name, id: id, return: ONFAILURE, err_msg: err_msg, client_id: client_id }));
                 return;
             }
-            // socket.write(JSON.stringify({ opcode: BRD_MEM_W, name: name, id: id, return: ONSUCCESS, address: address, byte: byte, content: "DEADBEEF"}));
+            
             var log = { opcode: BRD_RST, board_name: name, board_id: id, from: client_id, time: timeStamp, address: address, byte: byte, value: value };
             dbWrite('history', 'general', log);
 
@@ -379,7 +381,7 @@ const commandServer = net.createServer(function(socket){
             proxy[name].write(buffer);
         }
 
-        // This command does not interact with board. Only mail alert cap is changed. 
+        // This command does not interact with board. Only mail alert cap at DCA is changed. 
         if (packet.opcode === SET_ALRT_CAP) {
             var name = packet.param1;
             var id = packet.param2;
@@ -410,6 +412,7 @@ const commandServer = net.createServer(function(socket){
 
 commandServer.listen(config.get('command server.port'), config.get('command server.host'));
 
+// Helper functions
 
 function dbWrite(dbName, collection, obj){
     // Connect Database
@@ -441,14 +444,17 @@ function checkInvalidCommand(name, id) {
     var err_msg = undefined;
     if (!(name in Boarddata)) {
         err_msg = 'Board ' + name + ' is not in track list.';
+        return err_msg;
     }
 
     if (Boarddata[name].ID !== id) {
         err_msg = 'Board ' + id + ' is not in record.';
+        return err_msg;
     }
 
     if (name in unconnected) {
         err_msg = 'Board ' + name + ' is offline.';
+        return err_msg;
     }
 
     return err_msg;

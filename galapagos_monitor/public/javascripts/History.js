@@ -1,3 +1,4 @@
+// Called when /history is loaded
 window.onload = function() {
 
 	const Http = new XMLHttpRequest();
@@ -16,6 +17,7 @@ window.onload = function() {
     };
 }
 
+// Helper function for json
 function isJson(str) {
     try {
         JSON.parse(str);
@@ -25,6 +27,7 @@ function isJson(str) {
     return true;
 }
 
+// Cookies related functions
 function setCookie(cname, cvalue, exdays, path) {
     var d = new Date();
     d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
@@ -57,10 +60,5 @@ function deleteCookie(cname) {
 }
 
 function checkCookie(cname) {
-    var test = getCookie(cname);
-    if (test != "") {
-        return false;
-    } else {
-        return true;
-    }
+    return getCookie(cname) != "";
 }

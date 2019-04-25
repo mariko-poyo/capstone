@@ -1,4 +1,4 @@
-//function to add monitoring board
+// Function to add monitoring board
 function addBoardFunc() {
 
     var board_name = document.getElementById('selectBoard').value;
@@ -10,6 +10,7 @@ function addBoardFunc() {
 
     console.log("Adding board " + board_name + ": " + id);
 
+    // Chart config
     var config = {
         type: 'line',
         data: {
@@ -102,11 +103,11 @@ function addBoardFunc() {
         }
     };
 
-    // add line for new board in status table
+    /* Add line for new board in status table */
     var string_to_add = '<tr id="'+board_name+'_status">\n<td>' + board_name + '</td>\n<td><span id="boardstatus' + id + '">offline</span></td>\n<td><span id="temperatureval' + id + '">no data yet</span></td>';
     $('#statusTable').append(string_to_add);
 
-    // add new canvas for new board
+    /* Add new canvas for new board */
     var canvas_to_add = '\n<div id="'
         + board_name + '_tabcontent'
         + '" class="tabcontent">\n<h3>'
@@ -124,11 +125,12 @@ function addBoardFunc() {
     Global.configs[Global.board_info[board_name].ID] = config;
     window['Chart' + id] = new Chart(ctx, Global.configs[Global.board_info[board_name].ID]);
 
-    // add new bar to dashboard
+    /* Add new bar to dashboard */
     // Color for the bar
     if (Global.col.length === 0) Global.col = [...Object.values(window.chartColors)]; // refill when run out of colors
     var col = Global.col.shift();
 
+    // Push
     Global.configs[0].data.datasets.push({
         label: board_name,
         backgroundColor: color(col).alpha(0.8).rgbString(),
@@ -145,6 +147,7 @@ function addBoardFunc() {
     Global.tracking[board_name] = id;
 }
 
+// Function to remove monitoring board
 function removeBoardFunc() {
     var board_name = document.getElementById('selectBoard').value;
     if (!(board_name in Global.tracking))
@@ -162,7 +165,6 @@ function removeBoardFunc() {
 
     // Remove bar from dashboard
     for (index in [...Array(Global.configs[0].data.datasets.length).keys()]) {
-        console.log("Verifying index %d: %s", index, Global.configs[0].data.datasets[index].label);
         if (Global.configs[0].data.datasets[index].label === board_name) {
             Global.col.unshift(Global.configs[0].data.datasets[index].borderColor);
             Global.configs[0].data.datasets.splice(index, 1);
@@ -173,6 +175,9 @@ function removeBoardFunc() {
 
     delete Global.tracking[board_name];
 }
+
+
+// Functions for other buttons
 
 function resetBoard(name) {
     socket.emit('reset', name, Global.board_info[name].ID);
@@ -196,7 +201,7 @@ function setThreshold() {
 function memRead() {
     var name = Global.activeTab;
 
-    // change text at #messageReturn on page depend on return received.
+    // Change text at #messageReturn on page depend on return received.
     var ret = document.getElementById("messageReturn");
 
     if (name === 'Overview' || !name) {

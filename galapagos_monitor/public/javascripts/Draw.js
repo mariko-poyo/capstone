@@ -34,7 +34,7 @@ window.onload = function() {
             // console.log(Global.board_info.Default.ID);
             var op_to_add = '';
             for(item in boards_data){
-                //set the config to the selection
+                // Set the config to the selection
                 op_to_add += '<br><option value="'+item+'">'+item+'</option>';
             } 
             // console.log(op_to_add);
@@ -42,6 +42,7 @@ window.onload = function() {
         }
     };
 
+    // Dashboard chart config: bar chart
     var config = {
         type: 'bar',
         data: {
@@ -128,14 +129,14 @@ window.onload = function() {
 
 };
 
-
+// Function to open canvas when tag buttons have click event.
 function openCanvas(evt, board){
     var i, tabcontent, tablinks;
     Global.activeTab = board;
 	tabcontent = document.getElementsByClassName("tabcontent");
 	tablinks = document.getElementsByClassName("tablinks");
 
-	//hide currently shown one
+	// Hide currently shown one
 	for(i =0; i < tabcontent.length;i++){
 		tabcontent[i].style.display = "none";
 	}
@@ -144,7 +145,7 @@ function openCanvas(evt, board){
 		tablinks[i].className = tablinks[i].className.replace(" active","");
 	}
 
-	//show the clicked element
+	// Show the clicked element
 	document.getElementById(board).style.display = "block";
 	evt.currentTarget.className += " active";
 }

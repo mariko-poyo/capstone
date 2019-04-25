@@ -1,4 +1,7 @@
-const socket = io('http://localhost:5557'); // Checklist: change to external server IP
+// Checklist: (tag #CheckList)
+// 1. Change to proper server IP (APP port)
+// 2. Set desired warning loop interval
+const socket = io('http://localhost:5557'); // #CheckList
 
 // Command Status Code
 const ONSUCCESS = 1;
@@ -12,7 +15,7 @@ $(function (){
 		var temp = '#temperatureval' + data.id.toString();
 		var statusstring = 'online';
 
-		// Caution: Might have bug for unforeseen condition - Pure string comparsion here. 
+		// Caution: Might have bugs for unforeseen condition - Pure string comparsion here. 
 		// Try moment(current_timestamp).isSame(last_timestamp)? # TODO
 		// TimeZone is ignored. See dashboard logic comment for detail.
 		if(offline_logic(data.time)) {
@@ -30,7 +33,7 @@ $(function (){
 				alert("Warning: Latest Value Beyond " + Global.warningCap.toString() + " at board " + Global.activeTab + " !");
 				Global.alertTimer = setInterval(() => {
 					alert("Warning: Latest Value Beyond " + Global.warningCap.toString() + " at board " + Global.activeTab + " !");
-				}, 30000); // 30s
+				}, 30000); // 30s #CheckList
 			}
 		} else {
 			clearInterval(Global.alertTimer);
@@ -40,17 +43,12 @@ $(function (){
         $(temp).text(data.temperature);
         $(board).text(statusstring);
 
-		//pop out old data if # of datapoints is more than expected
+		// Pop out old data if # of datapoints is more than expected
 		if(Global.configs[data.id].data.datasets[0].data.length >= Global.numGraphPoints){
 			Global.configs[data.id].data.datasets.forEach(function (dataset) {
 				dataset.data.splice(0, dataset.data.length - Global.numGraphPoints);
 			});
 		}
-		
-		// TODO: check data.time
-		// var current = newTimeString(0);
-		// console.log("On Update: Actual source time = "+ data.time + ", current time = " + current);
-		// console.log("data.time type: "+ typeof(data.time) + ", current type: " + typeof(current));
 
 		Global.configs[data.id].data.datasets[0].data.push({
 			x: moment(data.time, "YYYY MM DD, HH:mm:ss").format(), //  data.time
@@ -59,12 +57,11 @@ $(function (){
 
 		window['Chart'+ data.id].update();
 
-		
 	});
 	
 	socket.on('connect_error' , function(err){
 		console.log('connect_error');
-		// clear timer
+		// clear timers
 		clearInterval(Global.updateTimer);
 		Global.updateTimer = undefined;
 
@@ -134,10 +131,10 @@ $(function (){
 
 			var last_timestamp = data[item][1];
 
-			// comparision: if timestamp is more than 3 sec diff from current time 
+			// Comparision logic: if timestamp is more than 3 sec diff from current time.
 			// TODO: Time zone is not considered. If system time has different time zone from server side, this logic will certainly fail.
 			// May have to parseZone(). But at this moment we don't take this issue seriously.
-			// Also, timestamp_diff may overflow for a really long time gap. 
+			// Also, timestamp_diff may overflow for a really long time gap for it is in second. 
 			if (offline_logic(last_timestamp)) {
 				console.log("offline logic");
 				statusstring = 'offline';
@@ -147,7 +144,7 @@ $(function (){
 				continue;
 			}
 
-			// update chart data list
+			// Update chart data list
 			Global.configs[0].data.datasets[index].data = [data[item][0]];
 			$(temp).text(data[item][0]);
 			$(board).text(statusstring);
@@ -171,7 +168,7 @@ socket.on('connect', () => {
 
 socket.on('disconnect', (reason) => {
 
-	// clear timer
+	// clear timers
 	clearInterval(Global.updateTimer);
 	Global.updateTimer = undefined;
 

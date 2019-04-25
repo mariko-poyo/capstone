@@ -26,11 +26,9 @@ const server = app.listen(APP_PORT, (err)=> {
 
 
 // socket.io setup
-
 var io = require('socket.io').listen(server);
 
 // MongoDB setup
-
 const MongoClient = require('mongodb').MongoClient;
 
 // Some Bootup loading
