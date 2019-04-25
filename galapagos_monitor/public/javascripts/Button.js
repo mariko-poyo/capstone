@@ -102,23 +102,22 @@ function addBoardFunc() {
         }
     };
 
-    // add line for new board
-    var string_to_add = '<tr>\n<td>' + board_name + '</td>\n<td><span id="boardstatus' + id + '">offline</span></td>\n<td><span id="temperatureval' + id + '">no data yet</span></td>';
-    $('#monitoringtable').append(string_to_add);
+    // add line for new board in status table
+    var string_to_add = '<tr id="'+board_name+'_status">\n<td>' + board_name + '</td>\n<td><span id="boardstatus' + id + '">offline</span></td>\n<td><span id="temperatureval' + id + '">no data yet</span></td>';
+    $('#statusTable').append(string_to_add);
 
     // add new canvas for new board
-    var canvas_to_add = '\n<div id='
-        + board_name
-        + ' class="tabcontent">\n<h3>'
+    var canvas_to_add = '\n<div id="'
+        + board_name + '_tabcontent'
+        + '" class="tabcontent">\n<h3>'
         + board_name + '</h3><button type="button" onclick="resetBoard(\''
         + board_name
         + '\')">Reset this board</button>\n<br>\n<canvas class="chartjs-render-monitor" id="canvas'
         + id
         + '" style="display: block; width: 862px; height: 431px;" width="862" height="431"></canvas>\n<br>\n<br>\n</div>';
-    var tab_to_add = '\n<button class="tablinks", onclick="openCanvas(event,\'' + board_name + '\')">' + board_name + '</button>';
+    var tab_to_add = '\n<button id="' + board_name + '_tablink'+'" class="tablinks", onclick="openCanvas(event,\'' + board_name+"_tabcontent" + '\')">' + board_name + '</button>';
     $('#board_tabs').append(tab_to_add);
     $('#tab_contents').append(canvas_to_add);
-    console.log(canvas_to_add);
 
     var canvas_str = 'canvas' + id;
     var ctx = document.getElementById(canvas_str).getContext('2d');
@@ -126,12 +125,12 @@ function addBoardFunc() {
     window['Chart' + id] = new Chart(ctx, Global.configs[Global.board_info[board_name].ID]);
 
     // add new bar to dashboard
-    var index = Object.keys(Global.tracking).length % Object.keys(window.chartColors).length;
-    var col = window.chartColors[Object.keys(window.chartColors)[index]];
-    Global.tracking[board_name] = id;
-    console.log(Object.keys(window.chartColors)[index]);
+    // Color for the bar
+    if (Global.col.length === 0) Global.col = [...Object.values(window.chartColors)]; // refill when run out of colors
+    var col = Global.col.shift();
+
     Global.configs[0].data.datasets.push({
-        label: [board_name],     // Board names update here
+        label: board_name,
         backgroundColor: color(col).alpha(0.8).rgbString(),
         borderColor: col,
         hoverBackgroundColor: color(col).alpha(0.5).rgbString(),
@@ -141,6 +140,38 @@ function addBoardFunc() {
         data: [0]
     });
     window.Chart0.update();
+
+    //Update Global
+    Global.tracking[board_name] = id;
+}
+
+function removeBoardFunc() {
+    var board_name = document.getElementById('selectBoard').value;
+    if (!(board_name in Global.tracking))
+        return;
+    
+    var id = Global.board_info[board_name].ID;
+
+    console.log("Removing board " + board_name + ": " + id);
+    // Remove tabcontent
+    document.getElementById(board_name + "_tabcontent").remove();
+    // Remove tablink
+    document.getElementById(board_name + "_tablink").remove();
+    // Remove status in table
+    document.getElementById(board_name + "_status").remove();
+
+    // Remove bar from dashboard
+    for (index in [...Array(Global.configs[0].data.datasets.length).keys()]) {
+        console.log("Verifying index %d: %s", index, Global.configs[0].data.datasets[index].label);
+        if (Global.configs[0].data.datasets[index].label === board_name) {
+            Global.col.unshift(Global.configs[0].data.datasets[index].borderColor);
+            Global.configs[0].data.datasets.splice(index, 1);
+            window.Chart0.update();
+            break;
+        }
+    }
+
+    delete Global.tracking[board_name];
 }
 
 function resetBoard(name) {
@@ -217,6 +248,7 @@ function setWarningCap() {
 
     var reading = document.getElementById("WarningCap").value;
     Global.warningCap = reading;
+    setCookie("WarningCap", Global.WarningCap, 30, '/');
     socket.emit('set warning cap', name, Global.board_info[name].ID, reading);
 
     ret.innerText = "Successfully set page warning cap value:" + Global.warningCap + ".";
@@ -226,6 +258,7 @@ function setWarningCap() {
 function submitMaxItem() {
     var reading = document.getElementById("MaxItem").value;
     Global.numGraphPoints = (reading > 2) ? reading : 2;
+    setCookie("numGraphPoints", Global.numGraphPoints, 30, '/');
 
     ret.innerText = "Successfully set line chart porperty: max shown points number to " + Global.numGraphPoints + ".";
     ret.style = "color: green";
@@ -237,6 +270,7 @@ function submitInterval() {
 
     ret.innerText = "Successfully set line chart porperty: update interval to" + Global.updateInterval + ".";
     ret.style = "color: green";
+    setCookie("updateInterval", Global.updateInterval, 30, '/');
 
     // update timer
     if (Global.updateTimer) {

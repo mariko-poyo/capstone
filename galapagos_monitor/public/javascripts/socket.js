@@ -12,6 +12,17 @@ $(function (){
 		var temp = '#temperatureval' + data.id.toString();
 		var statusstring = 'online';
 
+		// Caution: Might have bug for unforeseen condition - Pure string comparsion here. 
+		// Try moment(current_timestamp).isSame(last_timestamp)? # TODO
+		// TimeZone is ignored. See dashboard logic comment for detail.
+		if(offline_logic(data.time)) {
+			console.log("offline logic");
+			statusstring = 'offline';
+			$(board).text(statusstring);
+			$(temp).text("data expired");
+			return;
+		}
+
 		// Page pop up alert
 		if (data.temperature > Global.warningCap) {
 			if (!Global.alertTimer) {
@@ -24,17 +35,6 @@ $(function (){
 		} else {
 			clearInterval(Global.alertTimer);
 			Global.alertTimer = undefined;
-		}
-
-		// Caution: Might have bug for unforeseen condition - Pure string comparsion here. 
-		// Try moment(current_timestamp).isSame(last_timestamp)? # TODO
-		// TimeZone is ignored. See dashboard logic comment for detail.
-		if(offline_logic(data.time)) {
-			console.log("offline logic");
-			statusstring = 'offline';
-			$(board).text(statusstring);
-			$(temp).text("");
-			return;
 		}
 		
         $(temp).text(data.temperature);
@@ -142,7 +142,7 @@ $(function (){
 				console.log("offline logic");
 				statusstring = 'offline';
 				$(board).text(statusstring);
-				$(temp).text("");
+				$(temp).text("data expired");
 				index++;
 				continue;
 			}
@@ -160,8 +160,6 @@ $(function (){
 
 socket.on('connect', () => {
 	Global.updateTimer = setInterval(function () {
-		// console.log(Global.tracking);
-		// console.log(Object.keys(Global.tracking).length);
 		if (Global.activeTab && Global.activeTab !== "Overview") {
 			socket.emit('request', Global.board_info[Global.activeTab].ID);
 		} else if (Global.activeTab === "Overview" && Object.keys(Global.tracking).length) {

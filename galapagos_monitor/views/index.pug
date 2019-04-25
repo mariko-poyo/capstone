@@ -88,11 +88,12 @@ block content
             block boardList
                 select#selectBoard
                 button(type="button",onclick='addBoardFunc()') Add Board
-                table#monitoringtable
+                button(type="button",onclick='removeBoardFunc()') Remove Board
+                table#statusTable
                     tr
-                        th board name
-                        th status
-                        th temperature
+                        th BoardName
+                        th Status
+                        th Temperature
                     tr
     
     div(class="note")

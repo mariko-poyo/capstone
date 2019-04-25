@@ -19,10 +19,7 @@ for (item in Boarddata) {
 const net = require('net');
 
 // MongoDB Setup
-
 const MongoClient = require('mongodb').MongoClient;
-const db_url = 'mongodb://localhost:27017/';
-
 
 // Other Plugins
 const moment = require('moment');
@@ -54,9 +51,11 @@ const BRD_MEM_R = 3;
 const BRD_MEM_W = 4;
 const SET_ALRT_CAP = 5;
 
+// Config
+const config = require('config');
+
 // Mail Notifier
 const nodemailer = require('nodemailer');
-
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -67,40 +66,11 @@ const transporter = nodemailer.createTransport({
 
 var mailOptions = {
     from: 'GalapagosMonitor@address.com', 
-    to: 'hk.xu@mail.utoronto.ca',  // Checklist: Mail alert receiver(s)
-    subject: 'Temperature Warning From Galapagos Monitor System'
+    to: config.get('DCA.alert mail.receiver'),  
+    subject: config.get('DCA.alert mail.subject')
 };
 
 // =============================== Setup Start ==================================
-
-// DB Setup
-// MongoClient.connect(db_url, { useNewUrlParser: true }, async function (err, db) {
-//     if (err) {
-//         console.log("\x1b[31mDatabase Error:\x1b[0m -> Database is offline.");
-//         console.log(err);
-//         return;
-//     }
-//     // console.log("\x1b[35mDCA Setup\x1b[0m -> Database connected.");
-
-//     var temperature = db.db("temperature");
-//     var history = db.db("history");
-
-//     history.createCollection("general", function (err, res) {
-//         if (err) throw err;
-//         // console.log("\x1b[35mDCA Setup\x1b[0m -> Collection "+board_id.toString()+" created under History.");
-//     });
-
-//     BoardNames.forEach(function (board) {
-//         var board_id = Boarddata[board].ID;
-//         temperature.createCollection(board_id.toString(), function (err, res) {
-//             if (err) throw err;
-//         });
-
-//         history.createCollection(board_id.toString(), function (err, res) {
-//             if (err) throw err;
-//         });
-//     });
-// });
 
 // Proxy 
 BoardNames.forEach(function(board){
@@ -108,9 +78,8 @@ BoardNames.forEach(function(board){
     var board_id = Boarddata[board].ID;
 
     proxy[board] = new net.Socket();
-    proxy[board].setTimeout(5000);
+    proxy[board].setTimeout(config.get('DCA.proxy.timeout'));
 
-    // console.log(Boarddata[board].IP +'/'+Boarddata[board].port);
     // First Connection
 
     proxy[board].on('connect', function(err){
@@ -130,7 +99,7 @@ BoardNames.forEach(function(board){
             buffer.writeUInt32LE(REQ_TEMP,4)
             proxy[board].write(buffer);
             console.log("Temp Request sent to board %s.",board);
-        }, 2000); // Checklist: set to 1000
+        }, config.get('DCA.proxy.temperature update interval')); 
 
     });
 
@@ -161,14 +130,11 @@ BoardNames.forEach(function(board){
         var buffer = Buffer.from(data);
         var client_id = buffer.toString('hex',0,4);
 
-        // console.log(buffer);
         console.log('\x1b[32mProxy Packet\x1b[0m -> From board %s: data received.', board);
 
         buffer = buffer.slice(4);
-        // console.log(buffer);
     
         if (buffer[0] == RESP_TEMP){
-            // console.log(buffer.readInt32LE(4));
             var converted_temp = buffer.readInt32LE(4) * 503.975 / 4096 - 273.15;
             console.log('\x1b[32mProxy Packet\x1b[0m -> From board %s: Temperature received : %f.', board, converted_temp);
             var timeStamp = moment().format("YYYY MM DD, HH:mm:ss");
@@ -274,14 +240,14 @@ BoardNames.forEach(function(board){
 
 // =============================== Setup End ==================================
 
-// Check for unconnected proxies. Will recall connect every 15 secs // Checklist: uncomment this when beta test
+// Check for unconnected proxies. Will recall connect every XX secs 
 setInterval(() => {
     for (board in unconnected) {
         console.log("Reconnecting :" + board);
         delete unconnected[board];
         proxy[board].connect(Boarddata[board].port, Boarddata[board].IP);
     }
-}, 5000);  // now 5s for a reconnection
+}, config.get('DCA.proxy.reconnection interval'));  
 
 
 // Command Server
@@ -314,21 +280,6 @@ const commandServer = net.createServer(function(socket){
             var log = { opcode: BRD_RST, board_name: name, board_id: id, from: client_id, time: timeStamp };
             dbWrite('history', 'general', log);
 
-            // if (!(name in Boarddata)) {
-            //     socket.write(JSON.stringify({ opcode: BRD_RST, name: name, id: id, return: ONFAILURE, err_msg: 'Board ' + name + ' is not in track list.', client_id: client_id}));
-            //     return;
-            // }
-    
-            // if (Boarddata[name].ID !==id) {
-            //     socket.write(JSON.stringify({ opcode: BRD_RST, name: name, id: id, return: ONFAILURE, err_msg: 'Board ' + id + ' is not in record.', client_id: client_id}));
-            //     return;
-            // }
-                
-            // if (name in unconnected) {
-            //     socket.write(JSON.stringify({ opcode: BRD_RST, name: name, id: id, return: ONFAILURE, err_msg: 'Board ' + name + ' is offline.', client_id: client_id}));
-            //     return;
-            // }
-
             var buffer = Buffer.alloc(8);
             buffer.write(client_id, 0, 4, 'hex');
             buffer.writeUInt32LE(RST_CMD,4);
@@ -336,7 +287,7 @@ const commandServer = net.createServer(function(socket){
             console.log(buffer);
             proxy[name].write(buffer);
 
-            // proxy[name].end(); // Checklist: Container Limited Ver.
+            // proxy[name].end(); // Design Fair Checklist: Container Limited Ver.
 
             socket.write(JSON.stringify({ opcode: BRD_RST, name: name, id: id, return: ONSUCCESS, client_id: client_id}));
         }
@@ -457,12 +408,12 @@ const commandServer = net.createServer(function(socket){
     });
 });
 
-commandServer.listen(8013, '127.0.0.1');
+commandServer.listen(config.get('command server.port'), config.get('command server.host'));
 
 
 function dbWrite(dbName, collection, obj){
     // Connect Database
-    MongoClient.connect(db_url, { useNewUrlParser: true }, function (err, db) {
+    MongoClient.connect(config.get('database.url'), { useNewUrlParser: true }, function (err, db) {
         if (err) {
             console.log("\x1b[31mProcess:\x1b[0m Error: Occured when connecting database.\n");
             console.log(err);
@@ -477,7 +428,6 @@ function dbWrite(dbName, collection, obj){
                 console.log("\x1b[31mProcess:\x1b[0m Error: Occured when connecting collection %s under db %s.\n", collection, dbName);
                 console.log(err);
                 return;
-                // throw err;
             }
             console.log("\x1b[34mProcess\x1b[0m -> Record: %s has added to collection %d under %s database.\n", JSON.stringify(obj), collection, dbName);
         });

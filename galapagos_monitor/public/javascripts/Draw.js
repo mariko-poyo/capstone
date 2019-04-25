@@ -13,7 +13,8 @@ var Global = {
     activeTab: NaN,
     board_info: {},     // Name: {ID, IP, port}
     configs: [],        
-    tracking: {}        // Name: ID
+    tracking: {},       // Name: ID,
+    col: []
 };
 
 var color = Chart.helpers.color;
@@ -109,6 +110,22 @@ window.onload = function() {
     Global.configs[0] = config;
 	var ctx = document.getElementById('canvas').getContext('2d');
     window.Chart0 = new Chart(ctx, Global.configs[0]);
+
+    // Cookie Reading/Setting
+    // List: warningCap, numGraphPoints, updateInterval
+    // TODO: reopen tracking list 
+    if (checkCookie("warningCap")) {
+        Global.warningCap = parseInt(getCookie("warningCap"));
+    } else setCookie("warningCap", 75, 30, '/');
+    
+    if (checkCookie("numGraphPoints")) {
+        Global.warningCap = parseInt(getCookie("warningCap"));
+    } else setCookie("numGraphPoints", 10, 30, '/');
+
+    if (checkCookie("updateInterval")) {
+        Global.warningCap = parseInt(getCookie("warningCap"));
+    } else setCookie("updateInterval", 2000, 30, '/');
+
 };
 
 

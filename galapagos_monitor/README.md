@@ -28,15 +28,6 @@ Updating...
 * Check DCA run.js - Mail alert receiver(s)
 
 **Last Commit:**
-* Improved alert event logic. Now email event will be trigger once per overheated event, 
-page pop up event will happen every 30 sec.
-* Separated button functions from ./public/javascript/socket.js to a new file: ./public/javascript/Button.js 
-* Fixed bug on sorting database timestamp. Now timestamp format is YYYY MM DD, hh:mm:ss.
-* Implemented protocol and function for setting email alert cap value.
-* Removed useless files and comments.
-* Implemented offline check for board table and overview/board chart.
-
-**Current Commit:**
 * Improved offline check related logic.
 * Now a raw history page will show after clicking the navi bar
 * Cleaned up some code. Not all.
@@ -44,22 +35,28 @@ page pop up event will happen every 30 sec.
 * Revised timeout to 5s.
 * Set a more reasonable range for y-axis in temperature chart.
 
+**Current Commit:**
+* Further cleaning
+* Implemented remove tracking button and revised chart color logic.
+* Implemented simple cookies. Need to be improved for reopening tracking list
+* Implemented config file for backend. Will work on frontend javascript soon. 
+
 
 **TODO:**
 * **Improve CSS**
 * ~Memory operation interface on frontend.~ Improve for long read/write memory operations.
 * Find a way better than using alert for warning messages.
 * Implement more error checking.
-* Remove tracking board button in control panel
-* Cookies for current setting saving
+* ~Remove tracking board button in control panel~
+* ~Cookies for current setting saving~
 * Output error log to log file
 * Simplify current terminal output
 
 
 #### Opened Issues:
 * Cannot edit properties of x-axies ticks. Need to reformat time, limit range for first 10 values, and larger font size.
-* ~CSS looks really bad for less resolution web page.~
-* Wish to enable cookies to save tracking list. Should be pretty easy, but low priority.
+* Tab does not have limit and replacement logic at this moment. If there are too many tracked boards, the table tab may have something wrong.
+* Time zone issue for offline logic.
 
 
 
@@ -68,4 +65,9 @@ page pop up event will happen every 30 sec.
 app.js and default 3000 port in ./bin/www to some other ports and the problem should be resolved.
 * Now sim_board receives 2 params in commandline. [host, port] **No default value**. 
 * Port polling in DCA is turned off at current stage for debugging. So make sure sim_board or real board is online before DCA running.
+* Admin mailbox: 
+   ```
+   ac: GalapagosMonitor@gmail.com
+   pw: Galapagos496
+   ```
 

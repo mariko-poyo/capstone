@@ -16,6 +16,7 @@ const commandProxy = new net.Socket();
 
 var DCAStatus = 0; // DCA Online Flag
 
+const config = require('config');
 
 const APP_PORT= 5557; //tmp -> change it to some other port if ELIFECYCLE error appears
 const server = app.listen(APP_PORT, (err)=> {
@@ -31,7 +32,6 @@ var io = require('socket.io').listen(server);
 // MongoDB setup
 
 const MongoClient = require('mongodb').MongoClient;
-const url = 'mongodb://localhost:27017/';
 
 // Some Bootup loading
 var Boarddata = JSON.parse(fs.readFileSync('board_data.json', 'utf8'));
@@ -64,7 +64,7 @@ app.get('/getBoards',function(req,res){
 
 app.get('/getHistory',function(req,res){
     console.log("Receive http request: GetRecentHistory.");
-    MongoClient.connect(url, { useNewUrlParser: true }, function (err, db) {
+    MongoClient.connect(config.get('database.url'), { useNewUrlParser: true }, function (err, db) {
         if (err) {
             console.log("\x1b[34mHistory Table:\x1b[0m Error: Occured when connecting database.");
             console.log(err);
@@ -123,7 +123,7 @@ io.on('connection', function(socket){
     var client_hash = hash.MD5(socket);
     var client_id = client_hash.substring(0,8);
 
-    if (client_id in client_table) throw "Oh-oh, you won the jackpot: Duplicated client id. Congrats!";
+    if (client_id in client_table) throw "Oh-oh, you won the jackpot: Duplicated client id from truncated MD5. Congrats!";
 
     console.log("New client connected. Hash: %s. ID: %s.", client_hash, client_id);
 
@@ -132,7 +132,7 @@ io.on('connection', function(socket){
     // Receive request from client.
     socket.on('request', (ID) => {
         console.log("\x1b[92mTemperature Update:\x1b[0m Request received from clinet ID: %s on board id: %s.", client_id, ID);
-        MongoClient.connect(url, { useNewUrlParser: true }, function(err, db){
+        MongoClient.connect(config.get('database.url'), { useNewUrlParser: true }, function(err, db){
             if (err) {
                 console.log("\x1b[34mTemperature Update:\x1b[0m Error: Occured when connecting database.");
                 console.log(err);
@@ -182,7 +182,7 @@ io.on('connection', function(socket){
     socket.on('dashboard', (trackingList) => {
         console.log("\x1b[33mDashboard Update:\x1b[0m Dashboard update request received.");
         // console.log(trackingList);
-        MongoClient.connect(url, { useNewUrlParser: true },async function(err, db){
+        MongoClient.connect(config.get('database.url'), { useNewUrlParser: true },async function(err, db){
             if (err) {
                 console.log("\x1b[31mDashboard Update:\x1b[0m Error: Occured when connecting database.");
                 console.log(err);
@@ -209,7 +209,6 @@ io.on('connection', function(socket){
                         }
                         // console.log(result);
                         if (result.length === 0) {
-                            // ret[item] = undefined; // Checklist
                             ret[item] = [undefined, undefined];
                             console.log("\x1b[33mDashboard Update:\x1b[0m Error: Database is empty for board ID:"+id+".");
                         } else {
@@ -350,8 +349,8 @@ commandProxy.on('data', (data) => {
 // DCA reconnect routine
 setInterval(() => {
     if(!DCAStatus){
-        commandProxy.connect(8013, '127.0.0.1');
+        commandProxy.connect(config.get('command server.port'), config.get('command server.host'));
     }
-}, 15000);
+}, config.get('web server.DCA reconnection interval'));
 
 module.exports = app;

@@ -1,0 +1,29 @@
+{
+    "DCA" : {
+        "alert mail" : {
+            "receiver" : "",
+            "subject" : "Temperature Warning From Galapagos Monitor System"
+        }, 
+        "proxy" : {
+            "temperature update interval" : 2000,
+            "timeout" : 5000,
+            "reconnection interval" : 15000
+        }
+    },
+
+    "command server" :{
+        "host" : "127.0.0.1",
+        "port" : 8013
+    },
+
+    "web server" : {
+        "host": "127.0.0.1",
+        "port" : 3172,
+        "app port": 5557,
+        "DCA reconnection interval" : 15000
+    },
+
+    "database" : {
+        "url" : "mongodb://localhost:27017/"
+    }
+}
