@@ -140,10 +140,8 @@ Use code from existing commands as references when writing to database, socket, 
 
 
 #### Note:
-* If ELIFECYCLE error appears on "npm start", it means someone else is using those ports. So modify APP_PORT in
-app.js and default 3000 port in ./bin/www to some other ports and the problem should be resolved.
+* If ELIFECYCLE error appears on "npm start", it means someone else is using those ports. So modify APP_PORT in app.js and default 3172 port in ./bin/www to some other ports and the problem should be resolved.
 * Now sim_board receives 2 params in commandline. [host, port] **No default value**. 
-* Port polling in DCA is turned off at current stage for debugging. So make sure sim_board or real board is online before DCA running.
 * Admin mailbox: 
    ```
    ac: GalapagosMonitor@gmail.com

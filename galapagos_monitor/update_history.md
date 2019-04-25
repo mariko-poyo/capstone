@@ -78,3 +78,8 @@ page pop up event will happen every 30 sec.
 * Implemented remove tracking button and revised chart color logic.
 * Implemented simple cookies. Need to be improved for reopening tracking list
 * Implemented config file for backend. Will work on frontend javascript soon. 
+
+**1.0.1** *Current Version* 
+* Added comments and a rough update_history.md
+* Readme.md update.
+* Haven't fully tested. But should be ok. Will test again recently.
